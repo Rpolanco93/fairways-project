@@ -17,6 +17,8 @@ app.use(cookieParser());
 // pasing json bodies from request with contect type of app json
 app.use(express.json());
 
+//import routes
+const routes = require('./routes');
 
 //Security Middleware
 if (!isProduction) {
@@ -42,7 +44,6 @@ app.use(
     })
 );
 
+app.use(routes);
 
-
-const port = 8000;
-app.listen(port, () => console.log('Server-1 is listening on port', port));
+module.exports = app;
