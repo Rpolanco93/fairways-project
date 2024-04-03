@@ -9,6 +9,28 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
+
+    static calculateAvg(Spots) {
+      for (let index of Spots) {
+        const totalReviews = index.Reviews.length
+        let totalReview = 0;
+        for (let review of index.Reviews) {
+            totalReview += review.stars
+        }
+
+        index.avgRating = totalReview / totalReviews
+
+        index.SpotImages.forEach(image => {
+            if (image.previewImage) {
+                index.previewImage = image.url
+            }
+        })
+        delete index.Reviews
+        delete index.SpotImages
+      }
+      return Spots
+    }
+
     static associate(models) {
       // define association here
       Spot.belongsTo(
