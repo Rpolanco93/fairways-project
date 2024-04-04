@@ -3,7 +3,7 @@ const sessionRouter = require('./session.js');
 const usersRouter = require('./users.js');
 const spotsRouter = require('./spots.js')
 const bookingsRouter = require('./')
-const reviewsRouter = require('./')
+const reviewsRouter = require('./reviews.js')
 const spotImagesRouter = require('./')
 const reviewImagesRouter = require('./')
 
@@ -23,7 +23,7 @@ router.use('/spots', spotsRouter);
 //!update the route variables at the top of the page
 // router.use('/bookings', );
 
-// router.use('/reviews', );
+router.use('/reviews', reviewsRouter);
 
 // router.use('/spot-images', );
 

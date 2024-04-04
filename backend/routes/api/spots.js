@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 
 const { restoreUser, requireAuth } = require('../../utils/auth.js');
-const { Spot, Review, SpotImages, User } = require('../../db/models');
+const { Spot, Review, SpotImages, User, ReviewImages } = require('../../db/models');
 const { Op, Sequelize } = require('sequelize');
 
 const router = express.Router();
@@ -228,5 +228,92 @@ router.delete("/:spotId",
             return next(err)
         }
 })
+
+
+//* Get all Reviews by a Spot's id
+router.get("/:spotId/reviews", async (req, res, next) => {
+    try {
+        const Reviews = await Review.findAll({
+            where: {
+                spotId: req.params.spotId
+            },
+            include: [
+                {
+                    model: User,
+                    attributes: ["id", 'firstName', 'lastName']
+                },
+                {
+                    model: ReviewImages,
+                    attributes: ['id', 'url']
+                }
+            ]
+        })
+
+        if (Reviews.length == 0) {
+            const err = new Error("Spot couldn't be found")
+            err.status = 404
+            next(err)
+        } else  {
+            return res.json({Reviews})
+        }
+    } catch(err) {
+        return next(err)
+    }
+})
+
+//* Create a Review for a Spot based on the Spot's id
+router.post("/:spotId/reviews",
+    restoreUser,
+    async (req, res, next) => {
+        const userId = req.user.id;
+        const { spotId } = req.params;
+        const { review, stars } = req.body
+    try {
+        //* Body validation errors
+        if (!review || !stars) {
+            const err = new Error("Error")
+            err.status = 400
+            err.body = {
+                "message": "Bad Request",
+                "errors": {
+                    "review": "Review text is required",
+                    "stars": "Stars must be an integer from 1 to 5",
+                }
+              }
+            return next(err)
+        }
+
+        //* Couldn't find a Spot with the specified id
+        if (!(await Spot.count({ where: { id: spotId }}))) {
+            const err = new Error("Error")
+            err.status = 404
+            err.body = {
+                "message": "Spot couldn't be found",
+              }
+            return next(err)
+        }
+
+        //* Review from current user already exist
+        if (await Review.count({ where: { spotId, userId }})) {
+            const err = new Error("Error")
+            err.status = 404
+            err.body = {
+                "message": "User already has a review for this spot",
+              }
+            return next(err)
+        }
+
+        //* if no error occurs
+        const newReview = await Review.create({
+            userId, spotId, review, stars
+        })
+
+        return res.status(201).json(newReview)
+    } catch(err) {
+        return next(err)
+    }
+
+})
+
 
 module.exports = router;
