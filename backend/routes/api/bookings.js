@@ -12,12 +12,6 @@ router.get("/session",
     requireAuth,
     async (req, res, next) => {
     const userId = req.user.id
-    // const findReview = await Review.findByPk(reviewId, {
-    //     include: { model: ReviewImages, attributes: []},
-    //     attributes: {
-    //         include: [[Sequelize.fn('count', Sequelize.col('ReviewImages.id')), 'reviewImageCount']]
-    //     }
-    // })
 
     try {
         const Bookings = await Booking.findAll({

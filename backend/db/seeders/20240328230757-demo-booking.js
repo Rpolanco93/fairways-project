@@ -35,7 +35,7 @@ module.exports = {
         startDate: "2024-12-31",
         endDate: "2025-01-07"
       }
-    ])
+    ], { validate: true, returning: false })
   },
 
   async down (queryInterface, Sequelize) {
