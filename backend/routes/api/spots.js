@@ -58,6 +58,48 @@ const validateReview = [
       handleValidationErrors
 ]
 
+function getAvgAndImage(findAll) {
+    let spots = findAll.map(spot => {
+        let toJson = spot.toJSON()
+        if (toJson.Reviews.length) {
+            const numOfReviews = toJson.Reviews.length
+            let totalReview = 0;
+            for (let review of toJson.Reviews) {
+                totalReview += review.stars
+            }
+            toJson.avgRating = totalReview / numOfReviews
+        } else {
+            toJson.avgRating = null;
+        }
+        delete toJson.Reviews
+
+        if (toJson.SpotImages[0]) {
+            toJson.previewImage = toJson.SpotImages[0].url;
+        } else {
+            toJson.previewImage = null;
+        }
+        delete toJson.SpotImages
+        return toJson
+    })
+    return spots
+}
+
+function getAvgReviewAndCount(spot) {
+        let toJson = spot.toJSON()
+        if (toJson.Reviews.length) {
+            toJson.numReviews = toJson.Reviews.length
+            let totalReview = 0;
+            for (let review of toJson.Reviews) {
+                totalReview += review.stars
+            }
+            toJson.avgRating = totalReview / toJson.numReviews
+        } else {
+            toJson.avgRating = null;
+        }
+        delete toJson.Reviews
+    return toJson
+}
+
 //*Get all Spots
 router.get("/", async (req, res, next) => {
     let findAll = await Spot.findAll({
@@ -79,29 +121,7 @@ router.get("/", async (req, res, next) => {
     })
 
     //find avg reviews and previewImage
-    let spots = findAll.map(spot => {
-        let toJson = spot.toJSON()
-        if (toJson.Reviews.length) {
-            const numOfReviews = toJson.Reviews.length
-            let totalReview = 0;
-            for (let review of toJson.Reviews) {
-                totalReview += review.stars
-            }
-            toJson.avgRating = totalReview / numOfReviews
-        } else {
-            toJson.avgRating = null;
-        }
-          delete toJson.Reviews
-
-        if (toJson.SpotImages[0]) {
-            toJson.previewImage = toJson.SpotImages[0].url;
-        } else {
-            toJson.previewImage = null;
-        }
-        delete toJson.SpotImages
-
-        return toJson
-    })
+    let spots = getAvgAndImage(findAll)
 
     return res.json({Spots: spots})
 })
@@ -131,62 +151,21 @@ router.get("/session",
             group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']]
         })
 
-        //find avg reviews and previewImage
-        let spots = findAll.map(spot => {
-            let toJson = spot.toJSON()
-            if (toJson.Reviews.length) {
-                const numOfReviews = toJson.Reviews.length
-                let totalReview = 0;
-                for (let review of toJson.Reviews) {
-                    totalReview += review.stars
-                }
-                toJson.avgRating = totalReview / numOfReviews
-            } else {
-                toJson.avgRating = null;
-            }
-              delete toJson.Reviews
-
-            if (toJson.SpotImages[0]) {
-                toJson.previewImage = toJson.SpotImages[0].url;
-            } else {
-                toJson.previewImage = null;
-            }
-            delete toJson.SpotImages
-
-            return toJson
-        })
+    //find avg reviews and previewImage
+    let spots = getAvgAndImage(findAll)
 
     return res.json({Spots: spots})
 })
 
 //* Get details of a Spot from an id
 //? passes in prod but may need to be refactored
-// {
-//     "id":3,
-//     "ownerId":2,
-//     "name":"Cypress Point Club",
-//     "address":"3150 17 Mile Dr,",
-//     "city":"Pebble Beach","state":"CA",
-//     "country":"Murica","lat":56.3437,
-//     "lng":2.8023,
-//     "description":"Amazing ocean views",
-//     "price":"150",
-//     "createdAt":"2024-04-04T04:32:18.554Z",
-//     "updatedAt":"2024-04-04T04:32:18.554Z",
-//     "reviewCount":"1",
-//? avg rating returns incorrectly
-//     "avgStarRating":"4.0000000000000000",
-//     "SpotImages":[{"id":3,"url":"reviewimage3.com","preview":true}],
-//     "Owner":{"id":3,"firstName":"test","lastName":"tester"}}
-
-
 router.get("/:spotId", async (req, res, next) => {
     const { spotId } = req.params
     let getSpot = await Spot.findByPk(spotId, {
         include: [
             {
                 model: Review,
-                attributes: []
+                required: false,
             },
             {
                 model: SpotImages,
@@ -197,27 +176,16 @@ router.get("/:spotId", async (req, res, next) => {
                 as: "Owner",
                 attributes: ['id', 'firstName', 'lastName']
             }
-        ],
-        attributes: {
-            include: [
-                //! Won't work in postgres.. need to use reviews.sum and reviews.count
-                [Sequelize.fn('count', Sequelize.col('Reviews.id')), 'reviewCount'],
-                [Sequelize.fn('avg', Sequelize.col('stars')), 'avgStarRating']
-            ]
-        },
-        group: [['Spot.id'],['Reviews.id'],['Owner.id'],['SpotImages.id']]
+        ]
     })
 
-//! refactor to remove the stack from the error message
-    if (!getSpot.id) {
-        const err = new Error(`Couldn't find a Spot with the specified id`);
-        err.status = 404;
-        return next(err);
-    } else {
-        return res.json(
-            getSpot
-        )
-    }
+    if (getSpot === null) return res.status(404).json({
+        message: "Spot couldn't be found"
+    });
+
+    let spot = getAvgReviewAndCount(getSpot)
+
+    return res.json(spot)
 })
 
 //* Create a Spot
