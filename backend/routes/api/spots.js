@@ -67,8 +67,8 @@ router.get("/:spotId", async (req, res, next) => {
                 attributes: ['id', 'url', ['previewImage', 'preview']]
             },
             {
-                //! find out how to run the as command
                 model: User,
+                as: "Owner",
                 attributes: ['id', 'firstName', 'lastName']
             }
         ],
