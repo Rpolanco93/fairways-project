@@ -107,30 +107,56 @@ router.get("/", async (req, res, next) => {
 })
 
 //*Get all Spots owned by Current User
-//!failing in prod. err: {"title":"Server Error","message":"column Reviews.UserId does not exist","stack":null}
 router.get("/session",
     requireAuth,
     async (req, res, next) => {
-        const getSpots = await Spot.findAll({
+        let findAll = await Spot.findAll({
             where: {
                 ownerId: req.user.id
             },
-            include: [
-                { model: Review },
-                { model: SpotImages }
-            ]
+            include: [{
+                model: Review,
+                required: false,
+                attributes: ['stars'],
+                },
+                {
+                    model: SpotImages,
+                    required: false,
+                    where: {
+                        previewImage: true
+                    },
+                    attributes: ['url']
+                }
+            ],
+            group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']]
         })
 
-    //cannot toJSON an array from findAll
-    let allSpots = [];
-    //go through the spots and toJSON each one individually
-    getSpots.forEach(spot => {
-        allSpots.push(spot.toJSON())
-    });
-    //go through the spotsList arr and find the avg rating and preview image
-    let Spots = Spot.calculateAvg(allSpots)
+        //find avg reviews and previewImage
+        let spots = findAll.map(spot => {
+            let toJson = spot.toJSON()
+            if (toJson.Reviews.length) {
+                const numOfReviews = toJson.Reviews.length
+                let totalReview = 0;
+                for (let review of toJson.Reviews) {
+                    totalReview += review.stars
+                }
+                toJson.avgRating = totalReview / numOfReviews
+            } else {
+                toJson.avgRating = null;
+            }
+              delete toJson.Reviews
 
-    return res.json({Spots})
+            if (toJson.SpotImages[0]) {
+                toJson.previewImage = toJson.SpotImages[0].url;
+            } else {
+                toJson.previewImage = null;
+            }
+            delete toJson.SpotImages
+
+            return toJson
+        })
+
+    return res.json({Spots: spots})
 })
 
 //* Get details of a Spot from an id
