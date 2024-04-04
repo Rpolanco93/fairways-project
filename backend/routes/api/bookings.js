@@ -8,6 +8,7 @@ const { Op, Sequelize } = require('sequelize');
 const router = express.Router();
 
 //* Get all Bookings of the Current User
+//! production err: {"title":"Server Error","message":"column Booking.SpotId does not exist","stack":null}
 router.get("/session",
     requireAuth,
     async (req, res, next) => {

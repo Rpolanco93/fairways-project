@@ -36,16 +36,23 @@ module.exports = (sequelize, DataTypes) => {
       Spot.belongsTo(
         models.User,
         {
-          foreignKey: 'id'
+          foreignKey: 'ownerId'
         },
       )
 
       Spot.belongsTo(
         models.User,
         {
-          foreignKey: 'id',
+          foreignKey: 'ownerId',
           as: "Owner"
         },
+      )
+
+      Spot.belongsToMany(
+        models.User, {
+          through: models.Booking,
+          foreignKey: "userId"
+        }
       )
 
       Spot.hasMany(
@@ -73,7 +80,11 @@ module.exports = (sequelize, DataTypes) => {
   Spot.init({
     ownerId: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
     },
     name: {
       type: DataTypes.STRING,
