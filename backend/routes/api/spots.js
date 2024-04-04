@@ -166,6 +166,7 @@ router.get("/:spotId", async (req, res, next) => {
             {
                 model: Review,
                 required: false,
+                attributes: ["stars"]
             },
             {
                 model: SpotImages,
