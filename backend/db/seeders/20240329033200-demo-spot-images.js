@@ -31,7 +31,7 @@ module.exports = {
         url: 'reviewimage4.com',
         previewImage: true
       },
-    ])
+    ], { validate: true, returning: false })
   },
 
   async down (queryInterface, Sequelize) {

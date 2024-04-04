@@ -40,7 +40,7 @@ module.exports = {
         review: "could be better",
         stars: 1
       },
-    ])
+    ], { validate: true, returning: false })
   },
 
   async down (queryInterface, Sequelize) {
