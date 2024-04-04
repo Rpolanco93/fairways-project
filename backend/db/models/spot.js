@@ -37,7 +37,15 @@ module.exports = (sequelize, DataTypes) => {
         models.User,
         {
           foreignKey: 'id'
-        }
+        },
+      )
+
+      Spot.belongsTo(
+        models.User,
+        {
+          foreignKey: 'id',
+          as: "Owner"
+        },
       )
 
       Spot.hasMany(

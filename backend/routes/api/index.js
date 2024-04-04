@@ -2,7 +2,7 @@ const router = require('express').Router();
 const sessionRouter = require('./session.js');
 const usersRouter = require('./users.js');
 const spotsRouter = require('./spots.js')
-const bookingsRouter = require('./')
+const bookingsRouter = require('./bookings.js')
 const reviewsRouter = require('./reviews.js')
 const spotImagesRouter = require('./')
 const reviewImagesRouter = require('./')
@@ -21,7 +21,7 @@ router.use('/users', usersRouter);
 
 router.use('/spots', spotsRouter);
 //!update the route variables at the top of the page
-// router.use('/bookings', );
+router.use('/bookings', bookingsRouter);
 
 router.use('/reviews', reviewsRouter);
 
