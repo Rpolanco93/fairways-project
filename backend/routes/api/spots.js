@@ -74,10 +74,12 @@ router.get("/:spotId", async (req, res, next) => {
         ],
         attributes: {
             include: [
+                //! Won't work in postgres.. need to use reviews.sum and reviews.count
                 [Sequelize.fn('count', Sequelize.col('Reviews.id')), 'reviewCount'],
                 [Sequelize.fn('avg', Sequelize.col('stars')), 'avgStarRating']
             ]
-          }
+        },
+        group: [['Spot.id'],['Reviews.id'],['Owner.id'],['SpotImages.id']]
     })
 
     if (!getSpot.id) {
