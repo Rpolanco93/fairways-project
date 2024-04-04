@@ -8,6 +8,7 @@ const { Op, Sequelize } = require('sequelize');
 const router = express.Router();
 
 //*Get all Spots
+//!failing in prod. err: {"title":"Server Error","message":"column Reviews.UserId does not exist","stack":null}
 router.get("/", async (req, res, next) => {
     const spotsList = await Spot.findAll({
         include: [
@@ -28,6 +29,7 @@ router.get("/", async (req, res, next) => {
 })
 
 //*Get all Spots owned by Current User
+//!failing in prod. err: {"title":"Server Error","message":"column Reviews.UserId does not exist","stack":null}
 router.get("/session",
     restoreUser,
     async (req, res, next) => {
@@ -54,6 +56,26 @@ router.get("/session",
 })
 
 //* Get details of a Spot from an id
+//? passes in prod but may need to be refactored
+// {
+//     "id":3,
+//     "ownerId":2,
+//     "name":"Cypress Point Club",
+//     "address":"3150 17 Mile Dr,",
+//     "city":"Pebble Beach","state":"CA",
+//     "country":"Murica","lat":56.3437,
+//     "lng":2.8023,
+//     "description":"Amazing ocean views",
+//     "price":"150",
+//     "createdAt":"2024-04-04T04:32:18.554Z",
+//     "updatedAt":"2024-04-04T04:32:18.554Z",
+//     "reviewCount":"1",
+//? avg rating returns incorrectly
+//     "avgStarRating":"4.0000000000000000",
+//     "SpotImages":[{"id":3,"url":"reviewimage3.com","preview":true}],
+//     "Owner":{"id":3,"firstName":"test","lastName":"tester"}}
+
+
 router.get("/:spotId", async (req, res, next) => {
     const { spotId } = req.params
     let getSpot = await Spot.findByPk(spotId, {
@@ -82,6 +104,7 @@ router.get("/:spotId", async (req, res, next) => {
         group: [['Spot.id'],['Reviews.id'],['Owner.id'],['SpotImages.id']]
     })
 
+//! refactor to remove the stack from the error message
     if (!getSpot.id) {
         const err = new Error(`Couldn't find a Spot with the specified id`);
         err.status = 404;
@@ -116,6 +139,7 @@ router.post("/",
 })
 
 //* Add an Image to a Spot based on the Spot's id
+//! failing in Prod. Err: {title: 'Server Error', message: 'column "SpotId" does not exist', stack: null}
 router.post("/:spotId/images",
     restoreUser,
     async (req, res, next) => {
@@ -233,6 +257,7 @@ router.delete("/:spotId",
 
 
 //* Get all Reviews by a Spot's id
+//! failed in prod: error: {"title":"Server Error","message":"column Review.UserId does not exist","stack":null}
 router.get("/:spotId/reviews", async (req, res, next) => {
     try {
         const Reviews = await Review.findAll({
@@ -264,6 +289,8 @@ router.get("/:spotId/reviews", async (req, res, next) => {
 })
 
 //* Create a Review for a Spot based on the Spot's id
+//! failed in prod err: {title: 'Server Error', message: 'Error', stack: null}
+//! || {title: 'Server Error', message: 'column "UserId" does not exist', stack: null}
 router.post("/:spotId/reviews",
     restoreUser,
     async (req, res, next) => {
