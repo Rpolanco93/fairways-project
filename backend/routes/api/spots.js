@@ -1,37 +1,115 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-
-const { restoreUser, requireAuth } = require('../../utils/auth.js');
-const { Spot, Review, SpotImages, User, ReviewImages } = require('../../db/models');
+const { requireAuth } = require('../../utils/auth.js');
+const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../db/models');
 const { Op, Sequelize } = require('sequelize');
-
+const { check } = require('express-validator')
+const { handleValidationErrors } = require('../../utils/validation.js')
 const router = express.Router();
 
-//*Get all Spots
-//!failing in prod. err: {"title":"Server Error","message":"column Reviews.UserId does not exist","stack":null}
-router.get("/", async (req, res, next) => {
-    const spotsList = await Spot.findAll({
-        include: [
-            { model: Review },
-            { model: SpotImages }
-        ]
-    })
-    //cannot toJSON an array from findAll
-    let allSpots = [];
-    //go through the spots and toJSON each one individually
-    spotsList.forEach(spot => {
-        allSpots.push(spot.toJSON())
-    });
-    //go through the spotsList arr and find the avg rating and preview image
-    let Spots = Spot.calculateAvg(allSpots)
+//* helper to validate the spot
+const validateSpot = [
+    check('address')
+      .exists({ checkFalsy: true })
+      .notEmpty()
+      .withMessage('Street address is required'),
+    check('city')
+      .exists({ checkFalsy: true })
+      .withMessage('City is required'),
+    check('city')
+      .exists({ checkFalsy: true })
+      .withMessage('City is required'),
+    check('state')
+      .exists({ checkFalsy: true })
+      .withMessage('State is required'),
+      check('country')
+      .exists({ checkFalsy: true })
+      .withMessage('Country is required'),
+      check('lat')
+      .exists({ checkFalsy: true })
+      .isFloat({gte: -90, lte: 90})
+      .withMessage('Latitude is not valid'),
+      check('lng')
+      .exists({ checkFalsy: true })
+      .isFloat({gte: -180, lte: 180})
+      .withMessage('Longitude is not valid'),
+      check('name')
+      .exists({ checkFalsy: true })
+      .isLength({min: 1, max: 50})
+      .withMessage('Name must be less than 50 characters'),
+      check('description')
+      .exists({ checkFalsy: true })
+      .withMessage('Description is required'),
+      check('price')
+      .exists({ checkFalsy: true })
+      .isFloat({min:0})
+      .withMessage('Price per day is required'),
+    handleValidationErrors
+];
 
-    return res.json({Spots})
+const validateReview = [
+    check('review')
+      .exists({ checkFalsy: true })
+      .notEmpty()
+      .withMessage('Review text is required'),
+      check('stars')
+      .exists({ checkFalsy: true })
+      .isInt({gt: 0, lt: 5.1})
+      .withMessage('Stars must be an integer from 1 to 5'),
+      handleValidationErrors
+]
+
+//*Get all Spots
+router.get("/", async (req, res, next) => {
+    let findAll = await Spot.findAll({
+        include: [{
+            model: Review,
+            required: false,
+            attributes: ['stars'],
+            },
+            {
+                model: SpotImages,
+                required: false,
+                where: {
+                    previewImage: true
+                },
+                attributes: ['url']
+            }
+        ],
+        group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']]
+    })
+
+    //find avg reviews and previewImage
+    let spots = findAll.map(spot => {
+        let toJson = spot.toJSON()
+        if (toJson.Reviews.length) {
+            const numOfReviews = toJson.Reviews.length
+            let totalReview = 0;
+            for (let review of toJson.Reviews) {
+                totalReview += review.stars
+            }
+            toJson.avgRating = totalReview / numOfReviews
+        } else {
+            toJson.avgRating = null;
+        }
+          delete toJson.Reviews
+
+        if (toJson.SpotImages[0]) {
+            toJson.previewImage = toJson.SpotImages[0].url;
+        } else {
+            toJson.previewImage = null;
+        }
+        delete toJson.SpotImages
+
+        return toJson
+    })
+
+    return res.json({Spots: spots})
 })
 
 //*Get all Spots owned by Current User
 //!failing in prod. err: {"title":"Server Error","message":"column Reviews.UserId does not exist","stack":null}
 router.get("/session",
-    restoreUser,
+    requireAuth,
     async (req, res, next) => {
         const getSpots = await Spot.findAll({
             where: {
@@ -118,7 +196,7 @@ router.get("/:spotId", async (req, res, next) => {
 
 //* Create a Spot
 router.post("/",
-    restoreUser,
+    requireAuth,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { address, city, state, country, lat, lng, name, description, price} = req.body
@@ -141,7 +219,7 @@ router.post("/",
 //* Add an Image to a Spot based on the Spot's id
 //! failing in Prod. Err: {title: 'Server Error', message: 'column "SpotId" does not exist', stack: null}
 router.post("/:spotId/images",
-    restoreUser,
+    requireAuth,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { spotId } = req.params
@@ -173,7 +251,7 @@ router.post("/:spotId/images",
 
 //* Edit Spot
 router.put("/:spotId",
-    restoreUser,
+    requireAuth,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { spotId } = req.params
@@ -215,7 +293,7 @@ router.put("/:spotId",
 
 //* Delete an existing spot
 router.delete("/:spotId",
-    restoreUser,
+    requireAuth,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { spotId } = req.params
@@ -292,7 +370,7 @@ router.get("/:spotId/reviews", async (req, res, next) => {
 //! failed in prod err: {title: 'Server Error', message: 'Error', stack: null}
 //! || {title: 'Server Error', message: 'column "UserId" does not exist', stack: null}
 router.post("/:spotId/reviews",
-    restoreUser,
+    requireAuth,
     async (req, res, next) => {
         const userId = req.user.id;
         const { spotId } = req.params;
