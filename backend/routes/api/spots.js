@@ -161,7 +161,10 @@ router.get("/session",
 //? passes in prod but may need to be refactored
 router.get("/:spotId", async (req, res, next) => {
     const { spotId } = req.params
-    let getSpot = await Spot.findByPk(spotId, {
+    let getSpot = await Spot.findOne({
+        where: {
+            id: spotId
+        },
         include: [
             {
                 model: Review,
