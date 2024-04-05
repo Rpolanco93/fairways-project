@@ -14,12 +14,6 @@ router.get("/current",
     async (req, res, next) => {
     try {
         const getBookings = await Booking.findAll({
-            where: {
-                userId: req.user.id,
-            },
-            attributes: {
-                include: ['id']
-            },
             include: [
             {
                 model: Spot,
