@@ -230,33 +230,6 @@ router.post("/:spotId/images",
             url,
             preview
         })
-        // const ownerId = req.user.id
-        // const { spotId } = req.params
-        // const { url, preview } = req.body
-        // try {
-        //     let findSpot = await Spot.findOne({ where: { id: spotId } })
-        //     let spot = findSpot.toJSON()
-        //     //check that curr user owns spot
-        //     if (spot.ownerId !== ownerId) {
-        //         const err = new Error(`Spot couldn't be found`);
-        //         err.status = 404;
-        //         return next(err);
-        //     }
-        //     //create new image tied to the spot
-        //     const newImage = await SpotImages.create({spotId, url, previewImage: preview })
-        //     newImage.toJSON()
-        //     //create the obj to return specified fields
-        //     const image = {
-        //         id: newImage.id,
-        //         url: newImage.url,
-        //         preview: newImage.previewImage
-        //     }
-
-        //     return res.json(image)
-
-        //     } catch(err) {
-        //     return next(err)
-        // }
 })
 
 //* Edit Spot
@@ -345,7 +318,6 @@ router.delete("/:spotId",
 
 
 //* Get all Reviews by a Spot's id
-//! failed in prod: error: {"title":"Server Error","message":"column Review.UserId does not exist","stack":null}
 router.get("/:spotId/reviews", async (req, res, next) => {
     try {
         const Reviews = await Review.findAll({
@@ -377,29 +349,13 @@ router.get("/:spotId/reviews", async (req, res, next) => {
 })
 
 //* Create a Review for a Spot based on the Spot's id
-//! failed in prod err: {title: 'Server Error', message: 'Error', stack: null}
-//! || {title: 'Server Error', message: 'column "UserId" does not exist', stack: null}
 router.post("/:spotId/reviews",
-    requireAuth,
+    requireAuth, validateReview,
     async (req, res, next) => {
         const userId = req.user.id;
         const { spotId } = req.params;
         const { review, stars } = req.body
     try {
-        //* Body validation errors
-        if (!review || !stars) {
-            const err = new Error("Error")
-            err.status = 400
-            err.body = {
-                "message": "Bad Request",
-                "errors": {
-                    "review": "Review text is required",
-                    "stars": "Stars must be an integer from 1 to 5",
-                }
-              }
-            return next(err)
-        }
-
         //* Couldn't find a Spot with the specified id
         if (!(await Spot.count({ where: { id: spotId }}))) {
             const err = new Error("Error")
