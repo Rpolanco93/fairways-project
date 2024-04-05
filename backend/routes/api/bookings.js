@@ -20,7 +20,7 @@ router.get("/session",
                 userId
             },
             attributes: {
-                exclude: []
+                include: ["id"]
             },
             include: [
                 {
