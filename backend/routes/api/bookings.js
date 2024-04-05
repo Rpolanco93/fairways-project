@@ -27,7 +27,7 @@ router.get("/current",
                     exclude: ['description', 'createdAt', 'updatedAt']
                 },
                 include: {
-                    model:SpotImage,
+                    model:SpotImages,
                     required: false,
                     attributes: [['url', 'previewImage']],
                 }
