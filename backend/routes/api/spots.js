@@ -1,5 +1,5 @@
 const express = require('express');
-const { requireAuth } = require('../../utils/auth.js');
+const { requireAuth, restoreUser } = require('../../utils/auth.js');
 const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../db/models');
 const { Op, Sequelize } = require('sequelize');
 const { check } = require('express-validator')
@@ -212,7 +212,7 @@ router.post("/",
 
 //* Add an Image to a Spot based on the Spot's id
 router.post("/:spotId/images",
-    requireAuth,
+    requireAuth, restoreUser,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { spotId } = req.params
