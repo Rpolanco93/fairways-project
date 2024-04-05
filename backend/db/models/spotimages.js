@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       SpotImages.belongsTo(
         models.Spot,
+        { foreignKey: 'spotId' }
       )
     }
   }
