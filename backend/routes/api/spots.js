@@ -218,7 +218,8 @@ router.post("/:spotId/images",
         const { spotId } = req.params
         const { url, preview } = req.body
         try {
-            let spot = await Spot.findByPk(spotId)
+            let findSpot = await Spot.findByPk(spotId)
+            let spot = findSpot.toJSON()
             //check that curr user owns spot
             if (spot.ownerId !== ownerId) {
                 const err = new Error(`Spot couldn't be found`);
