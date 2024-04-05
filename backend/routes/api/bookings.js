@@ -25,6 +25,7 @@ router.get("/current",
                     model: Spot,
                     include: [{
                         model: SpotImages,
+                        require: false,
                         where: {
                             previewImage: true
                         },
