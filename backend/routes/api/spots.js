@@ -15,31 +15,28 @@ const validateSpot = [
     check('city')
       .exists({ checkFalsy: true })
       .withMessage('City is required'),
-    check('city')
-      .exists({ checkFalsy: true })
-      .withMessage('City is required'),
     check('state')
       .exists({ checkFalsy: true })
       .withMessage('State is required'),
-      check('country')
+    check('country')
       .exists({ checkFalsy: true })
       .withMessage('Country is required'),
-      check('lat')
+    check('lat')
       .exists({ checkFalsy: true })
       .isFloat({gte: -90, lte: 90})
       .withMessage('Latitude is not valid'),
-      check('lng')
+    check('lng')
       .exists({ checkFalsy: true })
       .isFloat({gte: -180, lte: 180})
       .withMessage('Longitude is not valid'),
-      check('name')
+    check('name')
       .exists({ checkFalsy: true })
       .isLength({min: 1, max: 50})
       .withMessage('Name must be less than 50 characters'),
-      check('description')
+    check('description')
       .exists({ checkFalsy: true })
       .withMessage('Description is required'),
-      check('price')
+    check('price')
       .exists({ checkFalsy: true })
       .isFloat({min:0})
       .withMessage('Price per day is required'),
@@ -194,13 +191,13 @@ router.get("/:spotId", async (req, res, next) => {
 
 //* Create a Spot
 router.post("/",
-    requireAuth,
+    requireAuth, validateSpot,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { address, city, state, country, lat, lng, name, description, price} = req.body
         try {
             const newSpot = await Spot.create({ownerId, address, city, state, country, lat, lng, name, description, price})
-            return res.json(newSpot)
+            return res.status(201).json(newSpot)
         } catch(err) {
             err.status = 400;
             err.body = {
@@ -211,11 +208,9 @@ router.post("/",
             }
             return next(err)
         }
-
 })
 
 //* Add an Image to a Spot based on the Spot's id
-//! failing in Prod. Err: {title: 'Server Error', message: 'column "SpotId" does not exist', stack: null}
 router.post("/:spotId/images",
     requireAuth,
     async (req, res, next) => {
@@ -249,7 +244,7 @@ router.post("/:spotId/images",
 
 //* Edit Spot
 router.put("/:spotId",
-    requireAuth,
+    requireAuth, validateSpot,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { spotId } = req.params
