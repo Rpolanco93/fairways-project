@@ -9,15 +9,13 @@ const router = express.Router();
 
 //* Get all Bookings of the Current User
 //! production err: {"title":"Server Error","message":"column Booking.SpotId does not exist","stack":null}
-router.get("/session",
+router.get("/current",
     requireAuth,
     async (req, res, next) => {
-    const userId = req.user.id
-
     try {
         const Bookings = await Booking.findAll({
             where: {
-                userId
+                userId: req.user.id
             },
             attributes: {
                 include: ["id"]
