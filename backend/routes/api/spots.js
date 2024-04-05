@@ -214,33 +214,49 @@ router.post("/",
 router.post("/:spotId/images",
     requireAuth, restoreUser,
     async (req, res, next) => {
-        const ownerId = req.user.id
-        const { spotId } = req.params
-        const { url, preview } = req.body
-        try {
-            let findSpot = await Spot.findByPk(spotId)
-            let spot = findSpot.toJSON()
-            //check that curr user owns spot
-            if (spot.ownerId !== ownerId) {
-                const err = new Error(`Spot couldn't be found`);
-                err.status = 404;
-                return next(err);
-            }
-            //create new image tied to the spot
-            const newImage = await SpotImages.create({spotId, url, previewImage: preview })
-            newImage.toJSON()
-            //create the obj to return specified fields
-            const image = {
-                id: newImage.id,
-                url: newImage.url,
-                preview: newImage.previewImage
-            }
-
-            return res.json(image)
-
-            } catch(err) {
-            return next(err)
+        const spot = await Spot.findByPk(req.params.spotId);
+        if (spot === null) return res.status(404).json({
+            "message": "Spot couldn't be found"
+          })
+        if (spot.ownerId !== req.user.id) {
+          return res.status(403).json({
+            message: 'Forbidden'
+          })
         }
+        const image = (await spot.createSpotImage(req.body)).toJSON()
+        const {id, url, preview } = image
+        res.json({
+            id,
+            url,
+            preview
+        })
+        // const ownerId = req.user.id
+        // const { spotId } = req.params
+        // const { url, preview } = req.body
+        // try {
+        //     let findSpot = await Spot.findOne({ where: { id: spotId } })
+        //     let spot = findSpot.toJSON()
+        //     //check that curr user owns spot
+        //     if (spot.ownerId !== ownerId) {
+        //         const err = new Error(`Spot couldn't be found`);
+        //         err.status = 404;
+        //         return next(err);
+        //     }
+        //     //create new image tied to the spot
+        //     const newImage = await SpotImages.create({spotId, url, previewImage: preview })
+        //     newImage.toJSON()
+        //     //create the obj to return specified fields
+        //     const image = {
+        //         id: newImage.id,
+        //         url: newImage.url,
+        //         preview: newImage.previewImage
+        //     }
+
+        //     return res.json(image)
+
+        //     } catch(err) {
+        //     return next(err)
+        // }
 })
 
 //* Edit Spot
