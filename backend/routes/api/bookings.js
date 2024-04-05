@@ -19,6 +19,9 @@ router.get("/session",
             where: {
                 userId
             },
+            attributes: {
+                exclude: []
+            },
             include: [
                 {
                     model: Spot,
