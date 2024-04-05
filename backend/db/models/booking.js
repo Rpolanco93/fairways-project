@@ -24,13 +24,27 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Booking.init({
+    id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true
+    },
     spotId: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      references: {
+          model: 'Spots',
+          key: 'id'
+      }
     },
     userId: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+    }
     },
     startDate: {
       type: DataTypes.DATE,
@@ -38,7 +52,14 @@ module.exports = (sequelize, DataTypes) => {
     },
     endDate: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        isAfterStartDate(value) {
+          if (value <= this.startDate ) {
+            throw new Error("endDate cannot be on or before startDate")
+          }
+        }
+      }
     }
   }, {
     sequelize,
