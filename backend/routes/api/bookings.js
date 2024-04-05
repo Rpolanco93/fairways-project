@@ -26,9 +26,6 @@ router.get("/current",
                     include: [{
                         model: SpotImages,
                         require: false,
-                        where: {
-                            previewImage: true
-                        },
                     }],
                     attributes: {
                         exclude: ['description', 'createdAt', 'updatedAt']
