@@ -13,11 +13,7 @@ router.get("/current",
     requireAuth,
     async (req, res, next) => {
     try {
-        const getBookings = await Booking.findAll({
-            where: {
-                userId: req.user.id
-            }
-        })
+        const getBookings = await Booking.findAll()
 
         return res.json({ Bookings: getBookings})
 
