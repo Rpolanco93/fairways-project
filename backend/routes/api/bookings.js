@@ -32,10 +32,7 @@ router.get("/session",
                         exclude: ['description', 'createdAt', 'updatedAt']
                     }
                 }
-            ],
-            attributes: {
-                exclude: []
-            }
+            ]
         })
 
         return res.json(Bookings)
