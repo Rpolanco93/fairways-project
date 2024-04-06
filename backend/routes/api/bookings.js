@@ -95,7 +95,7 @@ router.put("/:bookingId", requireAuth, async (req, res, next) => {
     if (!booking) return res.status(404).json({
         message: "Booking couldn't be found"
     })
-    let currDate = new DATE(Sequelize.literal('CURRENT_TIMESTAMP'))
+    let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
 
     if (booking.startDate < currDate) return res.status(403).json({
         message: "Past bookings can't be modified"
