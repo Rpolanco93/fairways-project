@@ -1,7 +1,7 @@
 const express = require('express');
 const { requireAuth, restoreUser } = require('../../utils/auth.js');
 const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../db/models');
-const { Op, Sequelize } = require('sequelize');
+const { Op, Sequelize, DATE } = require('sequelize');
 const { check } = require('express-validator')
 const { handleValidationErrors } = require('../../utils/validation.js')
 const router = express.Router();
@@ -412,6 +412,97 @@ router.get("/:spotId/bookings", requireAuth, async (req, res, next) => {
     }
 
     return res.json({Bookings: getBookings})
+})
+
+router.get("/:spotId/bookings", requireAuth, async (req, res, next) => {
+    let spot = await Spot.findByPk(req.params.spotId)
+    let getBookings;
+    if (!spot) return res.status(404).json({
+        message: "Spot couldn't be found"
+      })
+    if (spot.ownerId === req.user.id) {
+        getBookings = await Booking.findAll({
+            where: { spotId: req.params.spotId },
+            include: {
+                model: User,
+                required: false,
+                attributes: ['id','firstName','lastName']
+              }
+        })
+    } else {
+        getBookings = await Booking.findAll({
+            where: { spotId: req.params.spotId },
+            attributes: ["spotId", "startDate", "endDate"]
+        })
+    }
+
+    return res.json({Bookings: getBookings})
+})
+
+//! working  but need to update start/end date formatt
+router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
+    let { startDate, endDate} = req.body;
+    startDate = new Date(startDate);
+    endDate = new Date(endDate);
+    let spot = await Spot.findByPk(req.params.spotId);
+    if (!spot) return res.status(404).json({
+        message: "Spot couldn't be found"
+    })
+    //check that startDate is in the future and greater than the end date
+    let currDate = new DATE(Sequelize.literal('CURRENT_TIMESTAMP'))
+    console.log(startDate, currDate, startDate < currDate)
+    if (startDate < currDate || endDate <= startDate) return res.status(400).json({
+        "message": "Bad Request",
+        "errors": {
+          "startDate": "startDate cannot be in the past",
+          "endDate": "endDate cannot be on or before startDate"
+        }
+    })
+
+    //check for booking conflict
+    const checkBookings = await Booking.findOne({
+        where: {
+            spotId: req.params.spotId,
+            //check for bookings that start or end within the request booking
+            [Op.or]: [{
+                startDate: {
+                    [Op.between]:[startDate,endDate]
+                }},
+                { endDate: {
+                    [Op.between]:[startDate,endDate]
+                }},
+                //check for bookings that contain the requested booking dates
+                { [Op.and]:{
+                    startDate:{
+                        [Op.lte]: startDate
+                    },
+                    endDate:{
+                        [Op.gte]:endDate
+                    }}
+                }]
+        },
+    })
+
+    if (checkBookings) {
+        return res.status(403).json({
+            message: "Sorry, this spot is already booked for the specified dates",
+            errors: {
+              startDate: "Start date conflicts with an existing booking",
+              endDate: "End date conflicts with an existing booking"
+            }
+          })
+    }
+
+    let booking = await Booking.create({
+        spotId: req.params.spotId,
+        userId: req.user.id,
+        startDate,
+        endDate
+    })
+
+    booking.toJSON()
+
+    return res.json(booking)
 })
 
 module.exports = router;
