@@ -129,13 +129,15 @@ router.delete("/:bookingId", requireAuth, async (req, res, next) => {
     })
     let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
 
-    if (booking.endDate < currDate) return res.status(403).json({
-        message: "Past bookings can't be modified"
+    if (booking.startDate < currDate && booking.endDate > currDate) return res.status(403).json({
+        message: "Bookings that have been started can't be deleted"
     })
 
-    booking.update({ startDate, endDate })
+    booking.delete()
 
-    return res.json(booking)
+    return res.json({
+        "message": "Successfully deleted"
+      })
 })
 
 module.exports = router;
