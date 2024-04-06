@@ -67,7 +67,7 @@ router.post("/:reviewId/images",
             attributes: {
                 include: [[Sequelize.fn('count', Sequelize.col('ReviewImages.id')), 'reviewImageCount']]
             },
-            // group: ['Reviews.id']
+            group: ['Reviews.id']
         })
 
         let review = findReview.toJSON()
