@@ -12,7 +12,6 @@ const router = express.Router();
 router.get("/current",
     requireAuth,
     async (req, res, next) => {
-    try {
         const Bookings = await Booking.findAll({
             where: {
                 userId: req.user.id
