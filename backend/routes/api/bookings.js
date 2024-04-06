@@ -113,34 +113,4 @@ function getAvgReviewAndCount(spot) {
 return toJson
 }
 
-//* Get all Bookings of the Current User
-router.get("/current", requireAuth, async (req, res, next) => {
-    const getBookings = await Booking.findAll({
-        where: {
-            userId: req.user.id
-        },
-        include: [
-            {
-                 model: Spot,
-                include: [{
-                    model: SpotImages,
-                    required: false,
-                    where: {
-                        previewImage: true
-                    },
-                    attributes: ['url']
-                }],
-                attributes: {
-                    exclude: ['description', 'createdAt', 'updatedAt']
-                }
-            }
-        ],
-        order: ['spotId']
-    })
-
-    let Bookings = getPreviewImage(getBookings)
-
-    return res.json({Bookings})
-})
-
 module.exports = router;
