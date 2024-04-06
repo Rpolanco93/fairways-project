@@ -114,8 +114,7 @@ router.get("/", async (req, res, next) => {
                 attributes: ['url']
             }
         ],
-        group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']],
-        order: ['id', "ASC"]
+        group: [['Spot.id'],['Reviews.id'],['SpotImages.id']]
     })
 
     //find avg reviews and previewImage
