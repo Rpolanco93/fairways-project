@@ -11,9 +11,8 @@ const router = express.Router();
 router.get("/current",
     requireAuth,
     async (req, res, next) => {
-    //! need to find out how to add previewImage to Spot
     const userId = req.user.id
-    const Reviews = await Review.findAll({
+    let getReviews = await Review.findAll({
         where: {
             userId
         },
@@ -28,8 +27,7 @@ router.get("/current",
                     model: SpotImages,
                     where: {
                         previewImage: true
-                    },
-                    attributes: []
+                    }
                 }],
                 attributes: {
                     exclude: ['description', 'createdAt', 'updatedAt']
@@ -42,11 +40,21 @@ router.get("/current",
         ]
     })
 
-    return res.json({Reviews})
+    getReviews = getReviews.map(review => {
+        const jsonSpot = review.toJSON();
+        if (jsonSpot.Spot.SpotImages[0]) {
+            jsonSpot.Spot.previewImage = jsonSpot.Spot.SpotImages[0].url;
+          } else {
+            jsonSpot.Spot.previewImage = null;
+          }
+          delete jsonSpot.Spot.SpotImages
+        return jsonSpot;
+      });
+
+    return res.json({Reviews: getReviews})
 })
 
 //* Add an Image to a Review based on the Review's id
-//!failing in postgres  "column \"Review.id\" must appear in the GROUP BY clause or be used in an aggregate function"
 router.post("/:reviewId/images",
     requireAuth,
     async (req, res, next) => {
@@ -59,7 +67,7 @@ router.post("/:reviewId/images",
             attributes: {
                 include: [[Sequelize.fn('count', Sequelize.col('ReviewImages.id')), 'reviewImageCount']]
             },
-            group: ['id']
+            // group: ['Reviews.id']
         })
 
         let review = findReview.toJSON()
