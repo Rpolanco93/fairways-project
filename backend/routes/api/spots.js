@@ -43,6 +43,42 @@ const validateSpot = [
     handleValidationErrors
 ];
 
+const validateQuery = [
+    check('page')
+    .exists({ checkFalsy: true })
+    .isInt({min:1, max:10})
+      .withMessage('Page must be greater than or equal to 1'),
+    check('size')
+      .exists({ checkFalsy: true })
+      .isInt({min:1, max:20})
+      .withMessage('Size must be greater than or equal to 1'),
+    check('maxLat')
+      .exists({ checkFalsy: true })
+      .isFloat({gte: -90, lte: 90})
+      .withMessage('Maximum latitude is invalid'),
+      check('minLat')
+      .exists({ checkFalsy: true })
+      .isFloat({gte: -90, lte: 90})
+      .withMessage('Minimum latitude is invalid'),
+    check('maxLng')
+      .exists({ checkFalsy: true })
+      .isFloat({gte: -180, lte: 180})
+      .withMessage('Maximum longitude is invalid'),
+    check('minLng')
+      .exists({ checkFalsy: true })
+      .isFloat({gte: -180, lte: 180})
+      .withMessage('Minimum longitude is invalid'),
+    check('minPrice')
+      .exists({ checkFalsy: true })
+      .isFloat({min: 0})
+      .withMessage('Minimum price must be greater than or equal to 0'),
+    check('maxPrice')
+      .exists({ checkFalsy: true })
+      .isFloat({min: 0})
+      .withMessage('Maximum price must be greater than or equal to 0'),
+      handleValidationErrors
+  ];
+
 const validateReview = [
     check('review')
       .exists({ checkFalsy: true })
@@ -99,7 +135,62 @@ function getAvgReviewAndCount(spot) {
 
 //*Get all Spots
 router.get("/", async (req, res, next) => {
+    let { page, size, minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query
+    let limit;
+    let offset;
+
+    //check for validation errors
+    if (page === 0) return res.status(400).json({
+        message: "Bad Request",
+        errors: { "page": "Page must be greater than or equal to 1" }
+    });
+    if (size < 1) return res.status(400).json({
+        message: "Bad Request",
+        errors: { "size": "Size must be greater than or equal to 1" }
+    });
+    if (minLat < -90 || minLat > 90 ) return res.status(400).json({
+        message: "Bad Request",
+        errors: { minLat: "Minimum latitude is invalid" }
+    });
+    if (maxLat > 90 || maxLat < -90) return res.status(400).json({
+        message: "Bad Request",
+        errors: { "maxLat": "Maximum latitude is invalid" }
+    });
+    if (minLng > 180 || minLng < -180) return res.status(400).json({
+        message: "Bad Request",
+        errors: { "minLng": "Maximum longitude is invalid" }
+    });
+    if (maxLng < -180 || maxLng > 180) return res.status(400).json({
+        message: "Bad Request",
+        errors: { "maxLng": "Minimum longitude is invalid" }
+    });
+    if (minPrice < 0) return res.status(400).json({
+        message: "Bad Request",
+        errors: { "minPrice": "Minimum price must be greater than or equal to 0" }
+    });
+    if (maxPrice < 0) return res.status(400).json({
+        message: "Bad Request",
+        errors: { "maxPrice": "Maximum price must be greater than or equal to 0" }
+    });
+
+    if (!page) page = 1;
+    if (!size) size = 20;
+
+    if (page >= 1 && size >= 1) {
+        limit = size;
+        offset = size * (page - 1);
+    }
+
+    const where = {};
+    if (minLat) where.minLat = { [Op.gte]: minLat };
+    if (maxLat) where.maxLat = { [Op.lte]: maxLat };
+    if (minLng) where.lng = { [Op.gte]: minLng };
+    if (maxLng) where.maxLng = { [Op.lte]: maxLng };
+    if (minPrice) where.price = { [Op.gte]: minPrice }
+    if (maxPrice) where.price = { [Op.lte]: maxPrice }
+
     let findAll = await Spot.findAll({
+        where,
         include: [{
             model: Review,
             required: false,
@@ -114,13 +205,45 @@ router.get("/", async (req, res, next) => {
                 attributes: ['url']
             }
         ],
-        group: [['Spot.id'],['Reviews.id'],['SpotImages.id']]
+        limit,
+        offset,
+        group: [['Spot.id']]
     })
 
     //find avg reviews and previewImage
     let spots = getAvgAndImage(findAll)
 
-    return res.json({Spots: spots})
+
+
+    return res.json({
+        Spots: spots,
+        page,
+        size
+    })
+
+//* original code prior to query filters
+    // let findAll = await Spot.findAll({
+    //     include: [{
+    //         model: Review,
+    //         required: false,
+    //         attributes: ['stars'],
+    //         },
+    //         {
+    //             model: SpotImages,
+    //             required: false,
+    //             where: {
+    //                 previewImage: true
+    //             },
+    //             attributes: ['url']
+    //         }
+    //     ],
+    //     group: [['Spot.id'],['Reviews.id'],['SpotImages.id']]
+    // })
+
+    // //find avg reviews and previewImage
+    // let spots = getAvgAndImage(findAll)
+
+    // return res.json({Spots: spots})
 })
 
 //*Get all Spots owned by Current User
