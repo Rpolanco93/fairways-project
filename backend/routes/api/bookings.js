@@ -45,43 +45,6 @@ const validateSpot = [
     handleValidationErrors
 ];
 
-const validateReview = [
-    check('review')
-      .exists({ checkFalsy: true })
-      .notEmpty()
-      .withMessage('Review text is required'),
-      check('stars')
-      .exists({ checkFalsy: true })
-      .isInt({gt: 0, lt: 5.1})
-      .withMessage('Stars must be an integer from 1 to 5'),
-      handleValidationErrors
-]
-
-function getAvgAndImage(findAll) {
-    let spots = findAll.map(spot => {
-        let toJson = spot.toJSON()
-        if (toJson.Reviews.length) {
-            const numOfReviews = toJson.Reviews.length
-            let totalReview = 0;
-            for (let review of toJson.Reviews) {
-                totalReview += review.stars
-            }
-            toJson.avgRating = totalReview / numOfReviews
-        } else {
-            toJson.avgRating = null;
-        }
-        delete toJson.Reviews
-
-        if (toJson.SpotImages[0]) {
-            toJson.previewImage = toJson.SpotImages[0].url;
-        } else {
-            toJson.previewImage = null;
-        }
-        delete toJson.SpotImages
-        return toJson
-    })
-    return spots
-}
 
 function getPreviewImage(findAll) {
     let preview = findAll.map(Booking => {
@@ -97,20 +60,83 @@ function getPreviewImage(findAll) {
     return preview
 }
 
-function getAvgReviewAndCount(spot) {
-    let toJson = spot.toJSON()
-    if (toJson.Reviews.length) {
-        toJson.numReviews = toJson.Reviews.length
-        let totalReview = 0;
-        for (let review of toJson.Reviews) {
-            totalReview += review.stars
+//* Get all Bookings for a Spot based on the Spot's id
+router.get("/current", requireAuth, async (req, res, next) => {
+    let findAll = await Booking.findAll({
+        where: {
+            userId: req.user.id
+        },
+        include: [{
+            model: Spot,
+            include: [{
+                model: SpotImages,
+                attributes: ['url']
+            }],
+            attributes: {
+                exclude: ['updatedAt', 'createdAt', 'description']
+            }
+        }],
+        group: [['Spot.id','ASC']]
+    })
+
+//find avg reviews and previewImage
+let spots = getPreviewImage(findAll)
+
+return res.json({Bookings: spots})
+})
+
+//* Update and return an existing booking.
+router.put("/:bookingId", requireAuth, async (req, res, next) => {
+    let { startDate, endDate } = req.body;
+    startDate = new Date(startDate);
+    endDate = new Date(endDate);
+
+    let booking = await Booking.findByPk(req.params.bookingId)
+
+    if (!booking) return res.status(404).json({
+        message: "Booking couldn't be found"
+    })
+    let currDate = new DATE(Sequelize.literal('CURRENT_TIMESTAMP'))
+
+    if (booking.startDate < currDate) return res.status(403).json({
+        message: "Past bookings can't be modified"
+    })
+
+    //check that startDate is in the future and greater than the end date
+    if (startDate < currDate || endDate <= startDate) return res.status(400).json({
+        "message": "Bad Request",
+        "errors": {
+          "startDate": "startDate cannot be in the past",
+          "endDate": "endDate cannot be on or before startDate"
         }
-        toJson.avgRating = totalReview / toJson.numReviews
-    } else {
-        toJson.avgRating = null;
-    }
-    delete toJson.Reviews
-return toJson
-}
+    })
+
+    booking.update({ startDate, endDate })
+
+    return res.json(booking)
+})
+
+//* Delete a Booking
+router.delete("/:bookingId", requireAuth, async (req, res, next) => {
+    let booking = await Booking.findByPk(req.params.bookingId)
+
+    //check that curr user owns spot
+    if (booking.userId !== req.user.id) return res.status(400).json({
+        message: "Booking couldn't be found"
+    })
+
+    if (!booking) return res.status(404).json({
+        message: "Booking couldn't be found"
+    })
+    let currDate = new DATE(Sequelize.literal('CURRENT_TIMESTAMP'))
+
+    if (booking.endDate < currDate) return res.status(403).json({
+        message: "Past bookings can't be modified"
+    })
+
+    booking.update({ startDate, endDate })
+
+    return res.json(booking)
+})
 
 module.exports = router;
