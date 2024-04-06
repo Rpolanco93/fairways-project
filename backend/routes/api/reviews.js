@@ -58,50 +58,27 @@ router.get("/current",
 router.post("/:reviewId/images",
     requireAuth,
     async (req, res, next) => {
-        const userId = req.user.id;
-        const { reviewId } = req.params;
-        const { url } = req.body
-    try {
-        const findReview = await Review.findByPk(reviewId, {
-            include: { model: ReviewImages, attributes: []},
-            attributes: {
-                include: [[Sequelize.fn('count', Sequelize.col('ReviewImages.id')), 'reviewImageCount']]
-            },
-            group: ['Reviews.id']
-        })
-
-        let review = findReview.toJSON()
-
-        if (!review.id) {
-            const err = new Error("Error")
-            err.status = 404
-            err.body = {
-                "message": "Review couldn't be found",
-              }
-            return next(err)
+        const review = await Review.findByPk(req.params.reviewId);
+        if (!review) return res.status(404).json({
+            message: "Review couldn't be found"
+          })
+          if (review.userId !== req.user.id) {
+            return res.status(403).json({
+              message: 'Forbidden'
+            })
         }
-
-        if (review.reviewImageCount == "10") {
-            const err = new Error("Error")
-            err.status = 403
-            err.body = {
-                "message": "Maximum number of images for this resource was reached",
-              }
-            return next(err)
+        const count = await review.countReviewImages();
+        if (count > 9 ) {
+            return res.status(403).json({
+                "message": "Maximum number of images for this resource was reached"
+              })
         }
-
-        const newImage = await ReviewImages.create({
-            reviewId, url
-        })
-
-        return res.json({
-            id: newImage.id,
-            url
-        })
-
-    } catch(err) {
-        return next(err)
-    }
+          const image = (await review.createReviewImage(req.body)).toJSON()
+          const {id, url} = image
+          res.json({
+              id,
+              url
+          })
 })
 
 //* Update and return an existing review.
