@@ -414,32 +414,7 @@ router.get("/:spotId/bookings", requireAuth, async (req, res, next) => {
     return res.json({Bookings: getBookings})
 })
 
-router.get("/:spotId/bookings", requireAuth, async (req, res, next) => {
-    let spot = await Spot.findByPk(req.params.spotId)
-    let getBookings;
-    if (!spot) return res.status(404).json({
-        message: "Spot couldn't be found"
-      })
-    if (spot.ownerId === req.user.id) {
-        getBookings = await Booking.findAll({
-            where: { spotId: req.params.spotId },
-            include: {
-                model: User,
-                required: false,
-                attributes: ['id','firstName','lastName']
-              }
-        })
-    } else {
-        getBookings = await Booking.findAll({
-            where: { spotId: req.params.spotId },
-            attributes: ["spotId", "startDate", "endDate"]
-        })
-    }
-
-    return res.json({Bookings: getBookings})
-})
-
-//! working  but need to update start/end date formatt
+//* Create a Booking from a Spot based on the Spot's id
 router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
     let { startDate, endDate} = req.body;
     startDate = new Date(startDate);
@@ -504,5 +479,7 @@ router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
 
     return res.json(booking)
 })
+
+
 
 module.exports = router;
