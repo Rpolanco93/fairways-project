@@ -87,9 +87,9 @@ function getPreviewImage(findAll) {
     let preview = findAll.map(Booking => {
         const jsonSpot = Booking.toJSON();
         if (jsonSpot.Spot.SpotImages[0]) {
-            jsonSpot.previewImage = jsonSpot.Spot.SpotImages[0].url;
+            jsonSpot.Spot.previewImage = jsonSpot.Spot.SpotImages[0].url;
           } else {
-            jsonSpot.previewImage = null;
+            jsonSpot.Spot.previewImage = null;
           }
           delete jsonSpot.Spot.SpotImages
         return jsonSpot;
@@ -140,7 +140,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
 
     let Bookings = getPreviewImage(getBookings)
 
-    return res.json(Bookings)
+    return res.json({Bookings})
 })
 
 module.exports = router;
