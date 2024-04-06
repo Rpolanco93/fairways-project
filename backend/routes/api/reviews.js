@@ -8,7 +8,7 @@ const { Op, Sequelize } = require('sequelize');
 const router = express.Router();
 
 //* Get all Reviews of the Current User
-router.get("/session",
+router.get("/current",
     requireAuth,
     async (req, res, next) => {
     //! need to find out how to add previewImage to Spot
@@ -46,6 +46,7 @@ router.get("/session",
 })
 
 //* Add an Image to a Review based on the Review's id
+//!failing in postgres  "column \"Review.id\" must appear in the GROUP BY clause or be used in an aggregate function"
 router.post("/:reviewId/images",
     requireAuth,
     async (req, res, next) => {
@@ -57,7 +58,8 @@ router.post("/:reviewId/images",
             include: { model: ReviewImages, attributes: []},
             attributes: {
                 include: [[Sequelize.fn('count', Sequelize.col('ReviewImages.id')), 'reviewImageCount']]
-            }
+            },
+            group: ['id']
         })
 
         let review = findReview.toJSON()

@@ -114,7 +114,8 @@ router.get("/", async (req, res, next) => {
                 attributes: ['url']
             }
         ],
-        group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']]
+        group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']],
+        order: ['id', "ASC"]
     })
 
     //find avg reviews and previewImage
@@ -124,7 +125,7 @@ router.get("/", async (req, res, next) => {
 })
 
 //*Get all Spots owned by Current User
-router.get("/session",
+router.get("/current",
     requireAuth,
     async (req, res, next) => {
         let findAll = await Spot.findAll({
@@ -145,7 +146,8 @@ router.get("/session",
                     attributes: ['url']
                 }
             ],
-            group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']]
+            group: [['Spot.id','ASC'],['Reviews.id'],['SpotImages.id']],
+            order: ['id', "ASC"]
         })
 
     //find avg reviews and previewImage
