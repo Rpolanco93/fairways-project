@@ -13,14 +13,27 @@ router.get("/current",
     requireAuth,
     async (req, res, next) => {
     try {
-        const getBookings = await Booking.findAll()
+        const Bookings = await Booking.findAll({
+            where: {
+                userId: req.user.id
+            },
+            include: [
+                {
+                    model: Spot,
+                    include: [{
+                        model: SpotImages,
+                        where: {
+                            previewImage: true
+                        },
+                    }],
+                    attributes: {
+                        exclude: ['description', 'createdAt', 'updatedAt']
+                    }
+                }
+            ]
+        })
 
-        return res.json({ Bookings: getBookings})
-
-    } catch(err) {
-        return next(err)
-    }
-
+        return res.json(Bookings)
 })
 
 module.exports = router;
