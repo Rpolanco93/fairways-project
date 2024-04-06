@@ -75,8 +75,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
             attributes: {
                 exclude: ['updatedAt', 'createdAt', 'description']
             }
-        }],
-        group: ['Booking.id', ['Spot.id','ASC']]
+        }]
     })
 
 //find avg reviews and previewImage
