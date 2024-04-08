@@ -348,7 +348,7 @@ router.post("/:spotId/images",
             message: 'Forbidden'
           })
         }
-        const image = (await spot.createSpotImage({url, preview})).toJSON()
+        const image = (await spot.createSpotImage({url, previewImage})).toJSON()
         res.json({
             id: image.id,
             url: image.url,
