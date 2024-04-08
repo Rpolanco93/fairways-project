@@ -84,49 +84,112 @@ let spots = getPreviewImage(findAll)
 return res.json({Bookings: spots})
 })
 
+//* Update and return an existing booking. old
+// router.put("/:bookingId", requireAuth, async (req, res, next) => {
+//     let { startDate, endDate } = req.body;
+//     startDate = new Date(startDate);
+//     endDate = new Date(endDate);
+
+//     let booking = await Booking.findByPk(req.params.bookingId)
+
+//     if (!booking) return res.status(404).json({
+//         message: "Booking couldn't be found"
+//     })
+//     let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
+
+//     if (booking.startDate < currDate) return res.status(403).json({
+//         message: "Past bookings can't be modified"
+//     })
+
+//     //check that startDate is in the future and greater than the end date
+//     if (startDate < currDate || endDate <= startDate) return res.status(400).json({
+//         "message": "Bad Request",
+//         "errors": {
+//           "startDate": "startDate cannot be in the past",
+//           "endDate": "endDate cannot be on or before startDate"
+//         }
+//     })
+
+//     booking.update({ startDate, endDate })
+
+//     return res.json(booking)
+// })
+
 //* Update and return an existing booking.
-router.put("/:bookingId", requireAuth, async (req, res, next) => {
-    let { startDate, endDate } = req.body;
-    startDate = new Date(startDate);
-    endDate = new Date(endDate);
+router.put('/:bookingId', requireAuth, async (req, res) => {
+  const { startDate, endDate } = req.body;
+  const bookingId = req.params.bookingId;
+  const userId = req.user.id;
 
-    let booking = await Booking.findByPk(req.params.bookingId)
+  try {
+      const booking = await Booking.findByPk(bookingId);
+      if (!booking) {
+          return res.status(404).json({ message: "Booking couldn't be found" });
+      }
 
-    if (!booking) return res.status(404).json({
-        message: "Booking couldn't be found"
-    })
-    let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
+      if (booking.userId !== userId) {
+          return res.status(403).json({ message: "Not authorized to edit this booking" });
+      }
 
-    if (booking.startDate < currDate) return res.status(403).json({
-        message: "Past bookings can't be modified"
-    })
+      if (new Date(booking.endDate) < new Date()) {
+          return res.status(403).json({ message: "Past bookings can't be modified" });
+      }
 
-    //check that startDate is in the future and greater than the end date
-    if (startDate < currDate || endDate <= startDate) return res.status(400).json({
-        "message": "Bad Request",
-        "errors": {
-          "startDate": "startDate cannot be in the past",
-          "endDate": "endDate cannot be on or before startDate"
-        }
-    })
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(endDate);
 
-    booking.update({ startDate, endDate })
+      if (startDateObj >= endDateObj) {
+          return res.status(400).json({ errors: { endDate: "endDate cannot come before startDate" } });
+      }
 
-    return res.json(booking)
-})
+      const existingBookings = await Booking.findAll({
+          where: {
+              spotId: booking.spotId,
+              id: { [Sequelize.Op.ne]: bookingId }
+          }
+      });
+
+      for (const existingBooking of existingBookings) {
+          const existingStartDate = new Date(existingBooking.startDate);
+          const existingEndDate = new Date(existingBooking.endDate);
+
+          if ((startDateObj < existingEndDate && endDateObj > existingStartDate) ||
+              startDateObj.getTime() === existingEndDate.getTime() ||
+              endDateObj.getTime() === existingStartDate.getTime()) {
+              return res.status(403).json({
+                  message: "Sorry, this spot is already booked for the specified dates",
+                  errors: {
+                      startDate: "Start date conflicts with an existing booking",
+                      endDate: "End date conflicts with an existing booking"
+                  }
+              });
+          }
+      }
+
+      booking.startDate = startDate;
+      booking.endDate = endDate;
+      await booking.save();
+
+      res.status(200).json(booking);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+  }
+});
 
 //* Delete a Booking
 router.delete("/:bookingId", requireAuth, async (req, res, next) => {
     let booking = await Booking.findByPk(req.params.bookingId)
+
+    if (!booking) return res.status(404).json({
+      message: "Booking couldn't be found"
+    })
 
     //check that curr user owns spot
     if (booking.userId !== req.user.id) return res.status(400).json({
         message: "Booking couldn't be found"
     })
 
-    if (!booking) return res.status(404).json({
-        message: "Booking couldn't be found"
-    })
     let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
 
     if (booking.startDate < currDate && booking.endDate > currDate) return res.status(403).json({

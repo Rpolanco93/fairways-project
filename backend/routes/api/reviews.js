@@ -7,6 +7,18 @@ const { Op, Sequelize } = require('sequelize');
 
 const router = express.Router();
 
+const validateReview = [
+    check('review')
+      .exists({ checkFalsy: true })
+      .notEmpty()
+      .withMessage('Review text is required'),
+      check('stars')
+      .exists({ checkFalsy: true })
+      .isInt({gt: 0, lt: 5.1})
+      .withMessage('Stars must be an integer from 1 to 5'),
+      handleValidationErrors
+  ];
+
 //* Get all Reviews of the Current User
 router.get("/current",
     requireAuth,
@@ -83,35 +95,17 @@ router.post("/:reviewId/images",
 
 //* Update and return an existing review.
 router.put("/:reviewId",
-requireAuth,
+requireAuth, validateReview,
 async (req, res, next) => {
     const userId = req.user.id;
     const { reviewId } = req.params;
     const { review , stars } = req.body
 try {
-    if (!review || !stars) {
-        const err = new Error("Error")
-        err.status = 400
-        err.body = {
-            "message": "Bad Request",
-            "errors": {
-              "review": "Review text is required",
-              "stars": "Stars must be an integer from 1 to 5",
-            }
-          }
-        return next(err)
-    }
-
     const findReview = await Review.findByPk(reviewId)
 
-    if (!findReview.id) {
-        const err = new Error("Error")
-        err.status = 404
-        err.body = {
-            "message": "Review couldn't be found"
-          }
-        return next(err)
-    }
+    if (!findReview) return res.status(400).json({
+        message: "Review couldn't be found"
+    })
 
     await findReview.update({ review, stars })
 
@@ -131,14 +125,9 @@ router.delete("/:reviewId",
     try {
         const findReview = await Review.findByPk(reviewId)
 
-        if (!findReview.id) {
-            const err = new Error("Error")
-            err.status = 404
-            err.body = {
-                "message": "Review couldn't be found"
-              }
-            return next(err)
-        }
+        if (!findReview) return res.status(404).json({
+            message: "Your review couldn't be found"
+        })
 
         await findReview.destroy()
 
