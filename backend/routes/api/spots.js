@@ -337,6 +337,8 @@ router.post("/",
 router.post("/:spotId/images",
     requireAuth, restoreUser,
     async (req, res, next) => {
+        const { url, preview } = req.body
+        const previewImage = preview
         const spot = await Spot.findByPk(req.params.spotId);
         if (spot === null) return res.status(404).json({
             "message": "Spot couldn't be found"
@@ -346,12 +348,11 @@ router.post("/:spotId/images",
             message: 'Forbidden'
           })
         }
-        const image = (await spot.createSpotImage(req.body)).toJSON()
-        const {id, url, preview } = image
+        const image = (await spot.createSpotImage({url, preview})).toJSON()
         res.json({
-            id,
-            url,
-            preview
+            id: image.id,
+            url: image.url,
+            preview: image.previewImage
         })
 })
 
