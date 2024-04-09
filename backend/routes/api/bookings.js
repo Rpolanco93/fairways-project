@@ -120,6 +120,11 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
   const { startDate, endDate } = req.body;
   const bookingId = req.params.bookingId;
   const userId = req.user.id;
+  startDate = new DATEONLY(startDate);
+  endDate = new DATEONLY(endDate);
+
+  //check that startDate is in the future and greater than the end date
+  let currDate = new DATEONLY(Sequelize.literal('CURRENT_TIMESTAMP'))
 
   try {
       const booking = await Booking.findByPk(bookingId);
@@ -131,7 +136,7 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
           return res.status(403).json({ message: "Not authorized to edit this booking" });
       }
 
-      if (new Date(booking.endDate) < new Date()) {
+      if (endDate < currDate) {
           return res.status(403).json({ message: "Past bookings can't be modified" });
       }
 
@@ -187,7 +192,7 @@ router.delete("/:bookingId", requireAuth, async (req, res, next) => {
 
     //check that curr user owns spot
     if (booking.userId !== req.user.id) return res.status(400).json({
-        message: "Booking couldn't be found"
+        message: "Not Authorized"
     })
 
     let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
