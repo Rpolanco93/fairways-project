@@ -136,6 +136,12 @@ router.delete("/:reviewId",
             message: "Your review couldn't be found"
         })
 
+        if (req.user.id === review.userId) {
+            return res.status(403).json({
+              message: "Forbidden"
+            })
+        }
+
         await findReview.destroy()
 
         res.json({
