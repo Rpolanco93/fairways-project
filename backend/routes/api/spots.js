@@ -531,9 +531,9 @@ router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
         const startDateObj = new Date(startDate);
         const endDateObj = new Date(endDate);
 
-        // if (startDateObj >= endDateObj) {
-        //     return res.status(400).json({ errors: { endDate: "endDate cannot be on or before startDate" } });
-        // }
+        if (startDateObj >= endDateObj) {
+            return res.status(400).json({ errors: { endDate: "endDate cannot be on or before startDate" } });
+        }
 
         const existingBookings = await Booking.findAll({ where: { spotId } });
 
