@@ -513,10 +513,17 @@ router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
     let { startDate, endDate} = req.body;
     startDate = new DATEONLY(startDate);
     endDate = new DATEONLY(endDate);
+
     let spot = await Spot.findByPk(req.params.spotId);
     if (!spot) return res.status(404).json({
         message: "Spot couldn't be found"
     })
+
+    if (req.user.id === spot.ownerId) {
+        return res.status(403).json({
+          message: "Forbidden"
+        })
+    }
 
     //check that startDate is in the future and greater than the end date
     let currDate = new DATEONLY(Sequelize.literal('CURRENT_TIMESTAMP'))
