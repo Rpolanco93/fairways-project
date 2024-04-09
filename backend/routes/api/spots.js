@@ -510,133 +510,51 @@ router.get("/:spotId/bookings", requireAuth, async (req, res, next) => {
 
 //* Create a Booking from a Spot based on the Spot's id
 router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
-    let { startDate, endDate} = req.body;
-    startDate = new DATEONLY(startDate);
-    endDate = new DATEONLY(endDate);
+    const spotId = parseInt(req.params.spotId);
+    const { startDate, endDate } = req.body;
+    const userId = req.user.id;
 
-    let spot = await Spot.findByPk(req.params.spotId);
-    if (!spot) return res.status(404).json({
-        message: "Spot couldn't be found"
-    })
+    if (isNaN(spotId)) {
+        return res.status(400).json({ message: "Spot ID must be a valid integer" });
+    }
 
-    // if (req.user.id !== spot.ownerId) {
-    //     return res.status(403).json({
-    //       message: "Forbidden"
-    //     })
-    // }
-    //check that startDate is in the future and greater than the end date
-    let currDate = new DATEONLY(Sequelize.literal('CURRENT_TIMESTAMP'))
-
-    if (startDate < currDate) return res.status(400).json({
-        "message": "Bad Request",
-        "errors": {
-          "startDate": "startDate cannot be in the past",
+    try {
+        const spot = await Spot.findByPk(spotId);
+        if (!spot) {
+            return res.status(404).json({ message: "Spot couldn't be found" });
         }
-    })
 
-    if (endDate <= startDate) return res.status(400).json({
-        "message": "Bad Request",
-        "errors": {
-          "endDate": "endDate cannot be on or before startDate"
+        if (spot.ownerId === userId) {
+            return res.status(403).json({ message: "Cannot book your own spot" });
         }
-    })
 
-    // //check for booking conflict
-    // const checkBookings = await Booking.findOne({
-    //     where: {
-    //         spotId: req.params.spotId,
-    //         //check for bookings that start or end within the request booking
-    //         [Op.or]: [{
-    //             startDate: {
-    //                 [Op.between]:[startDate,endDate]
-    //             }},
-    //             { endDate: {
-    //                 [Op.between]:[startDate,endDate]
-    //             }},
-    //             //check for bookings that contain the requested booking dates
-    //             { [Op.and]:{
-    //                 startDate:{
-    //                     [Op.lte]: startDate
-    //                 },
-    //                 endDate:{
-    //                     [Op.gte]:endDate
-    //                 }}
-    //             }]
-    //     },
-    // })
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
 
-    //check for start date on existing booking
-    const checkStartDate = await Booking.findOne({
-        where: {
-            spotId: req.params.spotId,
-            //check for bookings that start or end within the request booking
-            [Op.or]: [{
-                startDate: {
-                    [Op.between]:[startDate,endDate]
-                }},
-                { endDate: {
-                    [Op.between]:[startDate,endDate]
-                }},
-                //check for bookings that contain the requested booking dates
-                { [Op.and]:{
-                    startDate:{
-                        [Op.lte]: startDate
-                    },
-                    endDate:{
-                        [Op.gte]:endDate
-                    }}
-                }]
-        },
-    })
-
-    if (checkStartDate) return res.status(400).json({
-        message: "Sorry, this spot is already booked for the specified dates",
-        errors: {
-          startDate: "Start date conflicts with an existing booking"
+        if (startDateObj >= endDateObj) {
+            return res.status(400).json({ errors: { endDate: "endDate cannot be on or before startDate" } });
         }
-    })
 
-    //check for end date conflicting with an existing booking
-    const checkEndDate = await Booking.findOne({
-            where: {
-                spotId: req.params.spotId,
-                //check for bookings that start or end within the request booking
-                [Op.or]: [{
-                    startDate: {
-                        [Op.between]:[startDate,endDate]
-                    }},
-                    { endDate: {
-                        [Op.between]:[startDate,endDate]
-                    }},
-                    //check for bookings that contain the requested booking dates
-                    { [Op.and]:{
-                        startDate:{
-                            [Op.lte]: startDate
-                        },
-                        endDate:{
-                            [Op.gte]:endDate
-                        }}
-                    }]
-            },
-        })
+        const existingBookings = await Booking.findAll({ where: { spotId } });
 
-    if (checkEndDate) return res.status(400).json({
-        message: "Sorry, this spot is already booked for the specified dates",
-        errors: {
-            endDate: "End date conflicts with an existing booking"
+        for (const booking of existingBookings) {
+            const existingStartDate = new Date(booking.startDate);
+            const existingEndDate = new Date(booking.endDate);
+
+            // Check if the new booking dates conflict with existing bookings
+            if ((startDateObj < existingEndDate && endDateObj > existingStartDate) ||
+                startDateObj.getTime() === existingEndDate.getTime() ||
+                endDateObj.getTime() === existingStartDate.getTime()) {
+                return res.status(403).json({ message: "Sorry, this spot is already booked for the specified dates" });
+            }
         }
-    })
 
-    let booking = await Booking.create({
-        spotId: req.params.spotId,
-        userId: req.user.id,
-        startDate,
-        endDate
-    })
-
-    booking.toJSON()
-
-    return res.json(booking)
+        const newBooking = await Booking.create({ userId, spotId, startDate, endDate });
+        res.status(200).json(newBooking);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
 })
 
 
