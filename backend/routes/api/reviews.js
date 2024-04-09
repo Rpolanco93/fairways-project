@@ -108,6 +108,12 @@ try {
         message: "Review couldn't be found"
     })
 
+    if (req.user.id === review.userId) {
+        return res.status(403).json({
+          message: "Forbidden"
+        })
+    }
+
     await findReview.update({ review, stars })
 
     res.json(findReview)
