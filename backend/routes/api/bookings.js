@@ -192,7 +192,7 @@ router.delete("/:bookingId", requireAuth, async (req, res, next) => {
 
     //check that curr user owns spot
     if (booking.userId !== req.user.id) return res.status(400).json({
-        message: "Booking couldn't be found"
+        message: "Not Authorized"
     })
 
     let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
