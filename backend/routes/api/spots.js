@@ -1,7 +1,7 @@
 const express = require('express');
 const { requireAuth, restoreUser } = require('../../utils/auth.js');
 const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../db/models');
-const { Op, Sequelize, DATE } = require('sequelize');
+const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
 const { check } = require('express-validator')
 const { handleValidationErrors } = require('../../utils/validation.js')
 const router = express.Router();
@@ -519,7 +519,7 @@ router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
     })
 
     //check that startDate is in the future and greater than the end date
-    let currDate = new DATE(Sequelize.literal('CURRENT_TIMESTAMP'))
+    let currDate = new DATEONLY(Sequelize.literal('CURRENT_TIMESTAMP'))
 
     if (startDate < currDate) return res.status(400).json({
         "message": "Bad Request",
