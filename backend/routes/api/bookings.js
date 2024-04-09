@@ -120,11 +120,11 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
   const { startDate, endDate } = req.body;
   const bookingId = req.params.bookingId;
   const userId = req.user.id;
-  startDate = new DATEONLY(startDate);
-  endDate = new DATEONLY(endDate);
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
 
   //check that startDate is in the future and greater than the end date
-  let currDate = new DATEONLY(Sequelize.literal('CURRENT_TIMESTAMP'))
+  let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
 
   try {
       const booking = await Booking.findByPk(bookingId);
