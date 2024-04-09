@@ -360,7 +360,7 @@ router.put("/:spotId",
         try {
             let spot = await Spot.findByPk(spotId)
             //check that spot exist
-            if (!spot.id || spotId == null) {
+            if (!spot || spotId == null) {
                 const err = new Error(`Spot couldn't be found`);
                 err.status = 404;
                 err.body = {
@@ -591,7 +591,7 @@ router.post("/:spotId/bookings", requireAuth, async (req, res, next) => {
     })
 
     //check for end date conflicting with an existing booking
-    const checkBookings = await Booking.findOne({
+    const checkEndDate = await Booking.findOne({
             where: {
                 spotId: req.params.spotId,
                 //check for bookings that start or end within the request booking
