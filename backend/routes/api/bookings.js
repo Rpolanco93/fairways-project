@@ -117,7 +117,7 @@ return res.json({Bookings: spots})
 
 //* Update and return an existing booking.
 router.put('/:bookingId', requireAuth, async (req, res) => {
-  const { startDate, endDate } = req.body;
+  let { startDate, endDate } = req.body;
   const bookingId = req.params.bookingId;
   const userId = req.user.id;
   startDate = new Date(startDate);
@@ -127,7 +127,7 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
   let currDate = new Date(Sequelize.literal('CURRENT_TIMESTAMP'))
 
   try {
-      const booking = await Booking.findByPk(bookingId);
+      let booking = await Booking.findByPk(bookingId);
       if (!booking) {
           return res.status(404).json({ message: "Booking couldn't be found" });
       }
@@ -186,7 +186,7 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
 router.delete("/:bookingId", requireAuth, async (req, res, next) => {
     let booking = await Booking.findByPk(req.params.bookingId)
 
-    if (!booking) return res.status(404).json({
+    if (!booking || req.params.bookingId === null) return res.status(404).json({
       message: "Booking couldn't be found"
     })
 
