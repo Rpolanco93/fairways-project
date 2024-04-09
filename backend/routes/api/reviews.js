@@ -108,7 +108,7 @@ try {
         message: "Review couldn't be found"
     })
 
-    if (req.user.id === findReview.userId) {
+    if (userId !== findReview.userId) {
         return res.status(403).json({
           message: "Forbidden"
         })
@@ -136,7 +136,7 @@ router.delete("/:reviewId",
             message: "Your review couldn't be found"
         })
 
-        if (req.user.id === findReview.userId) {
+        if (req.user.id !== findReview.userId) {
             return res.status(403).json({
               message: "Forbidden"
             })
