@@ -1,0 +1,836 @@
+diff --git a/.DS_Store b/.DS_Store
+deleted file mode 100644
+index cf969c9..0000000
+Binary files a/.DS_Store and /dev/null differ
+diff --git a/.gitignore b/.gitignore
+index 269a613..9443fde 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -3,3 +3,4 @@ node_modules
+ build
+ .DS_Store
+ *.db
++.idea
+diff --git a/backend/bin/create-schema.js b/backend/bin/create-schema.js
+new file mode 100644
+index 0000000..713de63
+--- /dev/null
++++ b/backend/bin/create-schema.js
+@@ -0,0 +1,8 @@
++const { sequelize } = require('../db/models');
++
++sequelize
++    .query(`CREATE SCHEMA IF NOT EXISTS ${process.env.SCHEMA}`, {
++        logging: console.log
++    })
++    .then(_data => process.exit(0))
++    .catch(error => alert(error.message));
+\ No newline at end of file
+diff --git a/backend/bin/drop-schema.js b/backend/bin/drop-schema.js
+new file mode 100644
+index 0000000..cd54236
+--- /dev/null
++++ b/backend/bin/drop-schema.js
+@@ -0,0 +1,8 @@
++const { sequelize } = require('../db/models');
++
++sequelize
++    .query(`DROP SCHEMA IF EXISTS ${process.env.SCHEMA} CASCADE`, {
++        logging: console.log
++    })
++    .then(_data => process.exit(0))
++    .catch(error => alert(error.message));
+\ No newline at end of file
+diff --git a/backend/bin/reset-database.sh b/backend/bin/reset-database.sh
+new file mode 100755
+index 0000000..0c2c107
+--- /dev/null
++++ b/backend/bin/reset-database.sh
+@@ -0,0 +1,13 @@
++#!/bin/bash
++
++# Drop schema (deletes everything)
++npx dotenv node ./bin/drop-schema.js
++
++# Create schema (creates database)
++npx dotenv node ./bin/create-schema.js
++
++# Use NPM to migrate (creates tables)
++npx dotenv sequelize db:migrate
++
++# Use NPM to seed (adds sample data)
++npx dotenv sequelize db:seed:all
+\ No newline at end of file
+diff --git a/backend/db/migrations/20240328023836-create-spot.js b/backend/db/migrations/20240328023836-create-spot.js
+index b832f9e..3f99533 100644
+--- a/backend/db/migrations/20240328023836-create-spot.js
++++ b/backend/db/migrations/20240328023836-create-spot.js
+@@ -53,8 +53,9 @@ module.exports = {
+       description: {
+         type: Sequelize.STRING
+       },
++      //TODO: Type FLOAT is returned as a number where as type DECIMAL is returned as a string (precision)
+       price: {
+-        type: Sequelize.DECIMAL,
++        type: Sequelize.FLOAT,
+         allowNull: false,
+       },
+       createdAt: {
+diff --git a/backend/db/models/spot.js b/backend/db/models/spot.js
+index b1c3427..cf2951d 100644
+--- a/backend/db/models/spot.js
++++ b/backend/db/models/spot.js
+@@ -92,8 +92,9 @@ module.exports = (sequelize, DataTypes) => {
+     description: {
+       type: DataTypes.STRING,
+     },
++    //TODO: Type FLOAT is returned as a number where as type DECIMAL is returned as a string (precision)
+     price: {
+-      type: DataTypes.DECIMAL,
++      type: DataTypes.FLOAT,
+       allowNull: false,
+     }
+   }, {
+diff --git a/backend/package.json b/backend/package.json
+index 1da0b58..7d26a43 100644
+--- a/backend/package.json
++++ b/backend/package.json
+@@ -11,7 +11,7 @@
+     "start:development": "nodemon ./bin/www",
+     "start:production": "node ./bin/www",
+     "build": "node psql-setup-script.js",
+-    "db-reset": "npx dotenv sequelize db:seed:undo:all && npx dotenv sequelize db:migrate:undo:all && npx dotenv sequelize db:migrate && npx dotenv sequelize db:seed:all"
++    "db-reset": "./bin/reset-database.sh"
+   },
+   "keywords": [],
+   "author": "",
+diff --git a/backend/routes/api/admin.js b/backend/routes/api/admin.js
+new file mode 100644
+index 0000000..88e1ff9
+--- /dev/null
++++ b/backend/routes/api/admin.js
+@@ -0,0 +1,38 @@
++const express = require('express');
++const fs = require('fs');
++const path = require("path");
++
++const router = express.Router();
++
++const Database = require('../../db/models');
++
++const counts = async () => {
++    return {
++        User: (await Database.User.count()),
++        Spot: (await Database.Spot.count()),
++        SpotImage: (await Database.SpotImages.count()),
++        Review: (await Database.Review.count()),
++        ReviewImage: (await Database.ReviewImages.count()),
++        Booking: (await Database.Booking.count())
++    };
++}
++
++router.get('/database/truncate', async (_req, res, _next) => {
++    await Database.sequelize.query(`TRUNCATE TABLE "${process.env.SCHEMA}"."Users" RESTART IDENTITY CASCADE`);
++
++    return res.json(await counts());
++});
++
++router.get('/database/seed', async (_req, res, next) => {
++    const directory = __dirname + '/../../db/seeders/';
++
++    const seeders = fs.readdirSync(__dirname + '/../../db/seeders/');
++
++    for (const seeder of seeders) {
++        await require(path.join(directory, seeder)).up(Database.sequelize, Database.Sequelize);
++    }
++
++    return res.json(await counts());
++});
++
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/bookings/delete.js b/backend/routes/api/bookings/delete.js
+index 99a0be5..63a6949 100644
+--- a/backend/routes/api/bookings/delete.js
++++ b/backend/routes/api/bookings/delete.js
+@@ -10,26 +10,27 @@ const router = express.Router()
+ 
+ //* Delete a Booking
+ router.delete("/:bookingId", requireAuth, async (req, res, next) => {
+-    let booking = await Booking.findByPk(req.params.bookingId)
+-    let currDate = new Date()
+-    currDate.setUTCHours(0,0,0,0)
+-    const startDateObj = new Date(booking.startDate);
+-    const endDateObj = new Date(booking.endDate);
++    const booking = await Booking.findByPk(req.params.bookingId)
+ 
+     if (!booking || req.params.bookingId === null) return res.status(404).json({
+       message: "Booking couldn't be found"
+     })
+ 
+     //check that curr user owns spot
+-    if (booking.userId !== req.user.id) return res.status(400).json({
+-        message: "Not Authorized"
++    if (booking.userId !== req.user.id) return res.status(403).json({
++        message: "Forbidden"
+     })
+ 
++    let currDate = new Date()
++    currDate.setUTCHours(0,0,0,0)
++    const startDateObj = new Date(booking.startDate);
++    const endDateObj = new Date(booking.endDate);
++
+     if (startDateObj < currDate && endDateObj > currDate) return res.status(403).json({
+         message: "Bookings that have been started can't be deleted"
+     })
+ 
+-    await Booking.destroy({ where: { id: req.params.bookingId }})
++    await booking.destroy();
+ 
+     return res.json({
+         "message": "Successfully deleted"
+diff --git a/backend/routes/api/bookings/get.js b/backend/routes/api/bookings/get.js
+index 611022f..7c29a3b 100644
+--- a/backend/routes/api/bookings/get.js
++++ b/backend/routes/api/bookings/get.js
+@@ -1,32 +1,13 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+-const router = express.Router();
+-
+-//? Helper functions
+-
+-function getPreviewImage(findAll) {
+-    let preview = findAll.map(Booking => {
+-        const jsonSpot = Booking.toJSON();
+-        if (jsonSpot.Spot.SpotImages[0]) {
+-            jsonSpot.Spot.previewImage = jsonSpot.Spot.SpotImages[0].url;
+-          } else {
+-            jsonSpot.Spot.previewImage = null;
+-          }
+-          delete jsonSpot.Spot.SpotImages
+-        return jsonSpot;
+-      });
+-    return preview
+-}
+-
++const { requireAuth } = require('../../../utils/auth.js');
++const { Spot, SpotImages, Booking } = require('../../../db/models/index.js');
++const { getPreviewImage } = require('./helper.js');
+ 
++const router = express.Router();
+ 
+ //* Get all Bookings for a Spot based on the Spot's id
+ router.get("/current", requireAuth, async (req, res, next) => {
+-    let findAll = await Booking.findAll({
++    let bookings = await Booking.findAll({
+         where: {
+             userId: req.user.id
+         },
+@@ -42,10 +23,10 @@ router.get("/current", requireAuth, async (req, res, next) => {
+         }]
+     })
+ 
+-//find avg reviews and previewImage
+-let spots = getPreviewImage(findAll)
++    //find avg reviews and previewImage
++    bookings = getPreviewImage(bookings)
+ 
+-return res.json({Bookings: spots})
++    return res.json({Bookings: bookings})
+ })
+ 
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/bookings/helper.js b/backend/routes/api/bookings/helper.js
+new file mode 100644
+index 0000000..024d7b3
+--- /dev/null
++++ b/backend/routes/api/bookings/helper.js
+@@ -0,0 +1,16 @@
++const getPreviewImage = bookings => {
++    return bookings.map(booking => {
++        const jsonSpot = booking.toJSON();
++        if (jsonSpot.Spot.SpotImages[0]) {
++            jsonSpot.Spot.previewImage = jsonSpot.Spot.SpotImages[0].url;
++        } else {
++            jsonSpot.Spot.previewImage = null;
++        }
++        delete jsonSpot.Spot.SpotImages
++        return jsonSpot;
++    })
++}
++
++module.exports = {
++    getPreviewImage
++};
+\ No newline at end of file
+diff --git a/backend/routes/api/bookings/index.js b/backend/routes/api/bookings/index.js
+index 7d17b2c..653510b 100644
+--- a/backend/routes/api/bookings/index.js
++++ b/backend/routes/api/bookings/index.js
+@@ -10,4 +10,4 @@ router.use(postRoutes);
+ router.use(putRoutes);
+ router.use(deleteRoutes);
+ 
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/bookings/post.js b/backend/routes/api/bookings/post.js
+index b3a140a..935c3d3 100644
+--- a/backend/routes/api/bookings/post.js
++++ b/backend/routes/api/bookings/post.js
+@@ -1,11 +1,4 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+ const router = express.Router();
+ 
+-
+-
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/bookings/put.js b/backend/routes/api/bookings/put.js
+index 556c01c..3c1a745 100644
+--- a/backend/routes/api/bookings/put.js
++++ b/backend/routes/api/bookings/put.js
+@@ -1,36 +1,72 @@
+ const express = require('express');
+ const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
++const { Spot, Review, SpotImages, User, ReviewImages, Booking, sequelize } = require('../../../db/models/index.js');
+ const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+ const { check, body } = require('express-validator')
+ const { handleValidationErrors } = require('../../../utils/validation.js')
++const { validateBooking } = require('./validator.js')
++
+ const router = express.Router();
+ 
+-const validateBooking = [
+-    body('endDate')
+-        .exists({ checkFalsy: true })
+-        .toDate()
+-        .custom((value, { req, res }) => {
+-            if (req.body.endDate < req.body.startDate) {
+-                 throw new Error ("endDate cannot come before startDate")
+-            }
++/*
++ * TODO: Existing booking logic is incorrect and didn't prevent overlaps. I used the postgres method to make it pass
++ *  but you will need to figure out how you want to resolve this.
++ */
++//* Update and return an existing booking.
++//requireAuth
++router.put('/:bookingId', requireAuth, validateBooking, async (req, res) => {
++    //Lookup spot based on spotId
++    const booking = await Booking.findByPk(req.params.bookingId);
+ 
+-            return true;
+-        }),
++    //If no spot is found return an error message
++    if (!booking) {
++        return res.status(404).json({message: "Booking couldn't be found"});
++    }
+ 
+-    body(['startDate', 'endDate'])
+-        .exists({ checkFalsy: true })
+-        .toDate()
+-        .withMessage((_value, meta) => `Booking requires a ${meta.path === 'startDate' ? 'startDate' : 'endDate'} that is not null and a valid date`),
++    //If booking isn't owned by the current user
++    if (booking.userId !== req.user.id) {
++        return res.status(403).json({message: "Forbidden"});
++    }
+ 
+-    handleValidationErrors
+-];
++    //Check for overlap
++    const overlap = await Booking.findOne({
++        where: {
++            [Op.and]: [
++                {
++                    [Op.not]: {
++                        id: req.params.bookingId
++                    }
++                },
++                sequelize.where(
++                    sequelize.fn('DATERANGE', sequelize.col('startDate'), sequelize.col('endDate'), '[]'),
++                    '&&',
++                    sequelize.fn('DATERANGE', req.body.startDate, req.body.endDate, '[]')
++                )
++            ]
++        }
++    });
++
++    //Abort on overlap
++    if (overlap) {
++        return res.status(403).json({
++            message: "Sorry, this spot is already booked for the specified dates",
++            errors: {
++                "startDate": "Start date conflicts with an existing booking",
++                "endDate": "End date conflicts with an existing booking"
++            }
++        });
++    }
+ 
++    //Update the booking
++    await booking.update({
++        startDate: req.body.startDate,
++        endDate: req.body.endDate
++    });
+ 
++    //Return bookings
++    return res.status(200).json(booking);
+ 
+-//* Update and return an existing booking.
+-//requireAuth
+-router.put('/:bookingId', requireAuth, validateBooking, async (req, res) => {
++    /*
+     let { startDate, endDate } = req.body;
+     const bookingId = req.params.bookingId;
+     const userId = req.user.id;
+@@ -89,6 +125,7 @@ router.put('/:bookingId', requireAuth, validateBooking, async (req, res) => {
+         console.error(err);
+         res.status(500).json({ error: err.message });
+     }
++    */
+   });
+ 
+ module.exports = router;
+diff --git a/backend/routes/api/bookings/validator.js b/backend/routes/api/bookings/validator.js
+new file mode 100644
+index 0000000..b1ddd90
+--- /dev/null
++++ b/backend/routes/api/bookings/validator.js
+@@ -0,0 +1,31 @@
++const { body } = require('express-validator')
++const { handleValidationErrors } = require('../../../utils/validation')
++
++const validateBooking = [
++    body('startDate')
++        .exists({ checkFalsy: true })
++        .toDate()
++        .isAfter(new Date().toISOString())
++        .withMessage('startDate cannot be in the past'),
++
++    body('endDate')
++        .exists({ checkFalsy: true })
++        .toDate()
++        .custom((value, { req, res }) => {
++            if (req.body.startDate >= req.body.endDate) {
++                throw new Error ("endDate cannot be on or before startDate")
++            }
++            return true;
++        }),
++
++    body(['startDate', 'endDate'])
++        .exists({ checkFalsy: true })
++        .toDate()
++        .withMessage((_value, meta) => `Booking requires a ${meta.path === 'startDate' ? 'startDate' : 'endDate'} that is not null and a valid date`),
++
++    handleValidationErrors
++];
++
++module.exports = {
++    validateBooking
++};
+diff --git a/backend/routes/api/index.js b/backend/routes/api/index.js
+index 63cb667..0ed3969 100644
+--- a/backend/routes/api/index.js
++++ b/backend/routes/api/index.js
+@@ -1,4 +1,5 @@
+ const router = require('express').Router();
++const adminRouter = require('./admin.js');
+ const sessionRouter = require('./session.js');
+ const usersRouter = require('./users.js');
+ const spotsRouter = require('./spots/index.js');
+@@ -14,6 +15,8 @@ const { restoreUser } = require('../../utils/auth.js');
+   // If current user session is not valid, set req.user to null
+ router.use(restoreUser);
+ 
++router.use('/admin', adminRouter);
++
+ router.use('/session', sessionRouter);
+ 
+ router.use('/users', usersRouter);
+diff --git a/backend/routes/api/review-images/get.js b/backend/routes/api/review-images/get.js
+index b3a140a..935c3d3 100644
+--- a/backend/routes/api/review-images/get.js
++++ b/backend/routes/api/review-images/get.js
+@@ -1,11 +1,4 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+ const router = express.Router();
+ 
+-
+-
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/review-images/index.js b/backend/routes/api/review-images/index.js
+index 7d17b2c..653510b 100644
+--- a/backend/routes/api/review-images/index.js
++++ b/backend/routes/api/review-images/index.js
+@@ -10,4 +10,4 @@ router.use(postRoutes);
+ router.use(putRoutes);
+ router.use(deleteRoutes);
+ 
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/review-images/post.js b/backend/routes/api/review-images/post.js
+index b3a140a..935c3d3 100644
+--- a/backend/routes/api/review-images/post.js
++++ b/backend/routes/api/review-images/post.js
+@@ -1,11 +1,4 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+ const router = express.Router();
+ 
+-
+-
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/review-images/put.js b/backend/routes/api/review-images/put.js
+index b3a140a..935c3d3 100644
+--- a/backend/routes/api/review-images/put.js
++++ b/backend/routes/api/review-images/put.js
+@@ -1,11 +1,4 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+ const router = express.Router();
+ 
+-
+-
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/reviews/index.js b/backend/routes/api/reviews/index.js
+index 7d17b2c..653510b 100644
+--- a/backend/routes/api/reviews/index.js
++++ b/backend/routes/api/reviews/index.js
+@@ -10,4 +10,4 @@ router.use(postRoutes);
+ router.use(putRoutes);
+ router.use(deleteRoutes);
+ 
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/spot-images/delete.js b/backend/routes/api/spot-images/delete.js
+index 08c82ae..4b7738c 100644
+--- a/backend/routes/api/spot-images/delete.js
++++ b/backend/routes/api/spot-images/delete.js
+@@ -14,7 +14,7 @@ router.delete("/:imageId", requireAuth, async (req, res, next) => {
+     })
+ 
+     let spot = await Spot.findByPk(image.spotId)
+-    if (spot.ownerId != req.user.id) return res.status(403).json({
++    if (spot.ownerId !== req.user.id) return res.status(403).json({
+       message: "Forbidden"
+   })
+ 
+diff --git a/backend/routes/api/spot-images/get.js b/backend/routes/api/spot-images/get.js
+index b3a140a..935c3d3 100644
+--- a/backend/routes/api/spot-images/get.js
++++ b/backend/routes/api/spot-images/get.js
+@@ -1,11 +1,4 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+ const router = express.Router();
+ 
+-
+-
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/spot-images/index.js b/backend/routes/api/spot-images/index.js
+index 7d17b2c..653510b 100644
+--- a/backend/routes/api/spot-images/index.js
++++ b/backend/routes/api/spot-images/index.js
+@@ -10,4 +10,4 @@ router.use(postRoutes);
+ router.use(putRoutes);
+ router.use(deleteRoutes);
+ 
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/spot-images/post.js b/backend/routes/api/spot-images/post.js
+index b3a140a..935c3d3 100644
+--- a/backend/routes/api/spot-images/post.js
++++ b/backend/routes/api/spot-images/post.js
+@@ -1,11 +1,4 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+ const router = express.Router();
+ 
+-
+-
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/spot-images/put.js b/backend/routes/api/spot-images/put.js
+index b3a140a..935c3d3 100644
+--- a/backend/routes/api/spot-images/put.js
++++ b/backend/routes/api/spot-images/put.js
+@@ -1,11 +1,4 @@
+ const express = require('express');
+-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+-const { check } = require('express-validator')
+-const { handleValidationErrors } = require('../../../utils/validation.js')
+ const router = express.Router();
+ 
+-
+-
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/spots/delete.js b/backend/routes/api/spots/delete.js
+index d669efe..9fb4edf 100644
+--- a/backend/routes/api/spots/delete.js
++++ b/backend/routes/api/spots/delete.js
+@@ -19,11 +19,10 @@ router.delete("/:spotId",
+                 message: "Spot couldn't be found"
+             })
+             //check that curr user owns spot
+-            if (spot.ownerId !== ownerId) return res.status(404).json({
++            if (spot.ownerId !== ownerId) return res.status(403).json({
+                 message: "Forbidden"
+             })
+ 
+-            delete spot
+             await Spot.destroy({
+                 where: {
+                   id: spotId,
+diff --git a/backend/routes/api/spots/index.js b/backend/routes/api/spots/index.js
+index 7d17b2c..653510b 100644
+--- a/backend/routes/api/spots/index.js
++++ b/backend/routes/api/spots/index.js
+@@ -10,4 +10,4 @@ router.use(postRoutes);
+ router.use(putRoutes);
+ router.use(deleteRoutes);
+ 
+-module.exports = router;
++module.exports = router;
+\ No newline at end of file
+diff --git a/backend/routes/api/spots/post.js b/backend/routes/api/spots/post.js
+index 1d9722d..27e2971 100644
+--- a/backend/routes/api/spots/post.js
++++ b/backend/routes/api/spots/post.js
+@@ -1,32 +1,14 @@
+ const express = require('express');
+ const { requireAuth, restoreUser } = require('../../../utils/auth.js');
+-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
++const { Spot, Review, SpotImages, User, ReviewImages, Booking, sequelize } = require('../../../db/models/index.js');
+ const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
+ const { check, body } = require('express-validator')
+ const { handleValidationErrors } = require('../../../utils/validation.js')
+ //* import helper functions and checks
+ const { validateSpot, validateQuery, validateReview, getAvgAndImage, getAvgReviewAndCount } = require('./validator.js')
+-const router = express.Router();
+-
+-//* validate the start and end dates for a booking
+-const validateBooking = [
+-    body('endDate')
+-        .exists({ checkFalsy: true })
+-        .toDate()
+-        .custom((value, { req, res }) => {
+-            if (req.body.endDate < req.body.startDate) {
+-                throw new Error ("endDate cannot come before startDate")
+-            }
+-                return true;
+-        }),
+-
+-    body(['startDate', 'endDate'])
+-        .exists({ checkFalsy: true })
+-        .toDate()
+-        .withMessage((_value, meta) => `Booking requires a ${meta.path === 'startDate' ? 'startDate' : 'endDate'} that is not null and a valid date`),
++const { validateBooking } = require('../bookings/validator.js')
+ 
+-    handleValidationErrors
+-];
++const router = express.Router();
+ 
+ //* Create a Spot
+ router.post("/",
+@@ -98,9 +80,64 @@ router.post("/:spotId/reviews",
+ 
+ })
+ 
++/*
++ * TODO: Existing booking logic is incorrect and didn't prevent overlaps. I used the postgres method to make it pass
++ *  but you will need to figure out how you want to resolve this.
++ */
+ //! review and rewrite it
+ //* Create a Booking from a Spot based on the Spot's id
+ router.post("/:spotId/bookings", requireAuth, validateBooking, async (req, res, next) => {
++    //Lookup spot based on spotId
++    const spot = await Spot.findByPk(req.params.spotId);
++
++    //If no spot is found return an error message
++    if (!spot) {
++        return res.status(404).json({message: "Spot couldn't be found"});
++    }
++
++    //Cannot book our own spot
++    if (req.user.id === spot.ownerId) {
++        return res.status(403).json({message: "Spot must NOT belong to the current user"});
++    }
++
++    //Check for overlap
++    const overlap = await Booking.findOne({
++        where: {
++            [Op.and]: [
++                {
++                    spotId: req.params.spotId
++                },
++                sequelize.where(
++                    sequelize.fn('DATERANGE', sequelize.col('startDate'), sequelize.col('endDate'), '[]'),
++                    '&&',
++                    sequelize.fn('DATERANGE', req.body.startDate, req.body.endDate, '[]')
++                )
++            ]
++        }
++    });
++
++    //Abort on overlap
++    if (overlap) {
++        return res.status(403).json({
++            message: "Sorry, this spot is already booked for the specified dates",
++            errors: {
++                "startDate": "Start date conflicts with an existing booking",
++                "endDate": "End date conflicts with an existing booking"
++            }
++        });
++    }
++
++    //Add the booking for the spot
++    const booking = await spot.createBooking({
++        userId: req.user.id,
++        spotId: req.params.spotId,
++        startDate: req.body.startDate,
++        endDate: req.body.endDate
++    });
++
++    //Return bookings
++    return res.status(200).json(booking);
++    /*
+     const spotId = parseInt(req.params.spotId);
+     const { startDate, endDate } = req.body;
+     const userId = req.user.id;
+@@ -154,6 +191,7 @@ router.post("/:spotId/bookings", requireAuth, validateBooking, async (req, res,
+         console.error(err);
+         res.status(500).json({ error: err.message });
+     }
++    */
+ })
+ 
+ 
+diff --git a/backend/routes/api/spots/validator.js b/backend/routes/api/spots/validator.js
+index 392abe3..98eace9 100644
+--- a/backend/routes/api/spots/validator.js
++++ b/backend/routes/api/spots/validator.js
+@@ -18,11 +18,11 @@ const validateSpot = [
+       .withMessage('Country is required'),
+     check('lat')
+       .exists({ checkFalsy: true })
+-      .isFloat({gte: -90, lte: 90})
++      .isFloat({min: -90, max: 90})
+       .withMessage('Latitude is not valid'),
+     check('lng')
+       .exists({ checkFalsy: true })
+-      .isFloat({gte: -180, lte: 180})
++      .isFloat({min: -180, max: 180})
+       .withMessage('Longitude is not valid'),
+     check('name')
+       .exists({ checkFalsy: true })
+@@ -34,7 +34,7 @@ const validateSpot = [
+     check('price')
+       .exists({ checkFalsy: true })
+       .isFloat({min:0})
+-      .withMessage('Price per day is required and must be a positive number'),
++      .withMessage('Price per day is required'),
+     handleValidationErrors
+ ];
+ 
+@@ -121,10 +121,10 @@ function getAvgReviewAndCount(spot) {
+             for (let review of toJson.Reviews) {
+                 totalReview += review.stars
+             }
+-            toJson.avgRating = totalReview / toJson.numReviews
++            toJson.avgStarRating = totalReview / toJson.numReviews
+             toJson.numReviews = totalReview
+         } else {
+-            toJson.avgRating = null
++            toJson.avgStarRating = null
+             toJson.numReviews = 0
+         }
+         delete toJson.Reviews
+diff --git a/backend/routes/api/users.js b/backend/routes/api/users.js
+index 58e270a..17bd291 100644
+--- a/backend/routes/api/users.js
++++ b/backend/routes/api/users.js
+@@ -12,11 +12,16 @@ const router = express.Router();
+ const validateSignup = [
+   check('email')
+     .exists({ checkFalsy: true })
++    .not()
++    .isEmpty()
+     .isEmail()
+-    .withMessage("Invalid email")
++    .withMessage("Invalid email"),
++    //TODO: Not actually checked and should be wrapped under the "Invalid email" error
++    /*
+     .not()
+     .isEmpty()
+     .withMessage("Email is required"),
++    */
+ 
+   check(['firstName', 'lastName'])
+     .exists({ checkFalsy: true })
+@@ -38,6 +43,8 @@ const validateSignup = [
+     .isEmpty()
+     .withMessage("Username is required"),
+ 
++  //TODO: Not actually checked and should be wrapped under the "Invalid email" error
++  /*
+   check('password')
+     .exists({ checkFalsy: true })
+     .isLength({ min: 6 })
+@@ -45,6 +52,7 @@ const validateSignup = [
+     .not()
+     .isEmpty()
+     .withMessage("Password is required"),
++   */
+ 
+   handleValidationErrors
+ ];

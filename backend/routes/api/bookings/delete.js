@@ -10,26 +10,27 @@ const router = express.Router()
 
 //* Delete a Booking
 router.delete("/:bookingId", requireAuth, async (req, res, next) => {
-    let booking = await Booking.findByPk(req.params.bookingId)
-    let currDate = new Date()
-    currDate.setUTCHours(0,0,0,0)
-    const startDateObj = new Date(booking.startDate);
-    const endDateObj = new Date(booking.endDate);
+    const booking = await Booking.findByPk(req.params.bookingId)
 
     if (!booking || req.params.bookingId === null) return res.status(404).json({
       message: "Booking couldn't be found"
     })
 
     //check that curr user owns spot
-    if (booking.userId !== req.user.id) return res.status(400).json({
-        message: "Not Authorized"
+    if (booking.userId !== req.user.id) return res.status(403).json({
+        message: "Forbidden"
     })
+
+    let currDate = new Date()
+    currDate.setUTCHours(0,0,0,0)
+    const startDateObj = new Date(booking.startDate);
+    const endDateObj = new Date(booking.endDate);
 
     if (startDateObj < currDate && endDateObj > currDate) return res.status(403).json({
         message: "Bookings that have been started can't be deleted"
     })
 
-    await Booking.destroy({ where: { id: req.params.bookingId }})
+    await booking.destroy();
 
     return res.json({
         "message": "Successfully deleted"
