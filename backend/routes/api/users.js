@@ -12,11 +12,16 @@ const router = express.Router();
 const validateSignup = [
   check('email')
     .exists({ checkFalsy: true })
+    .not()
+    .isEmpty()
     .isEmail()
-    .withMessage("Invalid email")
+    .withMessage("Invalid email"),
+    //TODO: Not actually checked and should be wrapped under the "Invalid email" error
+    /*
     .not()
     .isEmpty()
     .withMessage("Email is required"),
+    */
 
   check(['firstName', 'lastName'])
     .exists({ checkFalsy: true })
@@ -38,6 +43,8 @@ const validateSignup = [
     .isEmpty()
     .withMessage("Username is required"),
 
+  //TODO: Not actually checked and should be wrapped under the "Invalid email" error
+  /*
   check('password')
     .exists({ checkFalsy: true })
     .isLength({ min: 6 })
@@ -45,6 +52,7 @@ const validateSignup = [
     .not()
     .isEmpty()
     .withMessage("Password is required"),
+   */
 
   handleValidationErrors
 ];

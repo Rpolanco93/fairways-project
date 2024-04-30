@@ -18,11 +18,11 @@ const validateSpot = [
       .withMessage('Country is required'),
     check('lat')
       .exists({ checkFalsy: true })
-      .isFloat({gte: -90, lte: 90})
+      .isFloat({min: -90, max: 90})
       .withMessage('Latitude is not valid'),
     check('lng')
       .exists({ checkFalsy: true })
-      .isFloat({gte: -180, lte: 180})
+      .isFloat({min: -180, max: 180})
       .withMessage('Longitude is not valid'),
     check('name')
       .exists({ checkFalsy: true })
@@ -34,7 +34,7 @@ const validateSpot = [
     check('price')
       .exists({ checkFalsy: true })
       .isFloat({min:0})
-      .withMessage('Price per day is required and must be a positive number'),
+      .withMessage('Price per day is required'),
     handleValidationErrors
 ];
 
@@ -121,10 +121,10 @@ function getAvgReviewAndCount(spot) {
             for (let review of toJson.Reviews) {
                 totalReview += review.stars
             }
-            toJson.avgRating = totalReview / toJson.numReviews
+            toJson.avgStarRating = totalReview / toJson.numReviews
             toJson.numReviews = totalReview
         } else {
-            toJson.avgRating = null
+            toJson.avgStarRating = null
             toJson.numReviews = 0
         }
         delete toJson.Reviews

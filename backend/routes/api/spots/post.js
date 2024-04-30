@@ -1,32 +1,14 @@
 const express = require('express');
 const { requireAuth, restoreUser } = require('../../../utils/auth.js');
-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
+const { Spot, Review, SpotImages, User, ReviewImages, Booking, sequelize } = require('../../../db/models/index.js');
 const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
 const { check, body } = require('express-validator')
 const { handleValidationErrors } = require('../../../utils/validation.js')
 //* import helper functions and checks
 const { validateSpot, validateQuery, validateReview, getAvgAndImage, getAvgReviewAndCount } = require('./validator.js')
+const { validateBooking } = require('../bookings/validator.js')
+
 const router = express.Router();
-
-//* validate the start and end dates for a booking
-const validateBooking = [
-    body('endDate')
-        .exists({ checkFalsy: true })
-        .toDate()
-        .custom((value, { req, res }) => {
-            if (req.body.endDate < req.body.startDate) {
-                throw new Error ("endDate cannot come before startDate")
-            }
-                return true;
-        }),
-
-    body(['startDate', 'endDate'])
-        .exists({ checkFalsy: true })
-        .toDate()
-        .withMessage((_value, meta) => `Booking requires a ${meta.path === 'startDate' ? 'startDate' : 'endDate'} that is not null and a valid date`),
-
-    handleValidationErrors
-];
 
 //* Create a Spot
 router.post("/",
@@ -98,9 +80,64 @@ router.post("/:spotId/reviews",
 
 })
 
+/*
+ * TODO: Existing booking logic is incorrect and didn't prevent overlaps. I used the postgres method to make it pass
+ *  but you will need to figure out how you want to resolve this.
+ */
 //! review and rewrite it
 //* Create a Booking from a Spot based on the Spot's id
 router.post("/:spotId/bookings", requireAuth, validateBooking, async (req, res, next) => {
+    //Lookup spot based on spotId
+    const spot = await Spot.findByPk(req.params.spotId);
+
+    //If no spot is found return an error message
+    if (!spot) {
+        return res.status(404).json({message: "Spot couldn't be found"});
+    }
+
+    //Cannot book our own spot
+    if (req.user.id === spot.ownerId) {
+        return res.status(403).json({message: "Spot must NOT belong to the current user"});
+    }
+
+    //Check for overlap
+    const overlap = await Booking.findOne({
+        where: {
+            [Op.and]: [
+                {
+                    spotId: req.params.spotId
+                },
+                sequelize.where(
+                    sequelize.fn('DATERANGE', sequelize.col('startDate'), sequelize.col('endDate'), '[]'),
+                    '&&',
+                    sequelize.fn('DATERANGE', req.body.startDate, req.body.endDate, '[]')
+                )
+            ]
+        }
+    });
+
+    //Abort on overlap
+    if (overlap) {
+        return res.status(403).json({
+            message: "Sorry, this spot is already booked for the specified dates",
+            errors: {
+                "startDate": "Start date conflicts with an existing booking",
+                "endDate": "End date conflicts with an existing booking"
+            }
+        });
+    }
+
+    //Add the booking for the spot
+    const booking = await spot.createBooking({
+        userId: req.user.id,
+        spotId: req.params.spotId,
+        startDate: req.body.startDate,
+        endDate: req.body.endDate
+    });
+
+    //Return bookings
+    return res.status(200).json(booking);
+    /*
     const spotId = parseInt(req.params.spotId);
     const { startDate, endDate } = req.body;
     const userId = req.user.id;
@@ -154,6 +191,7 @@ router.post("/:spotId/bookings", requireAuth, validateBooking, async (req, res, 
         console.error(err);
         res.status(500).json({ error: err.message });
     }
+    */
 })
 
 

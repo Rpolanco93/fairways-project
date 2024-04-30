@@ -19,11 +19,10 @@ router.delete("/:spotId",
                 message: "Spot couldn't be found"
             })
             //check that curr user owns spot
-            if (spot.ownerId !== ownerId) return res.status(404).json({
+            if (spot.ownerId !== ownerId) return res.status(403).json({
                 message: "Forbidden"
             })
 
-            delete spot
             await Spot.destroy({
                 where: {
                   id: spotId,

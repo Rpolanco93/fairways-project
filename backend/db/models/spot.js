@@ -92,8 +92,9 @@ module.exports = (sequelize, DataTypes) => {
     description: {
       type: DataTypes.STRING,
     },
+    //TODO: Type FLOAT is returned as a number where as type DECIMAL is returned as a string (precision)
     price: {
-      type: DataTypes.DECIMAL,
+      type: DataTypes.FLOAT,
       allowNull: false,
     }
   }, {

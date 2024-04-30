@@ -1,32 +1,13 @@
 const express = require('express');
-const { requireAuth, restoreUser } = require('../../../utils/auth.js');
-const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../../../db/models/index.js');
-const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
-const { check } = require('express-validator')
-const { handleValidationErrors } = require('../../../utils/validation.js')
+const { requireAuth } = require('../../../utils/auth.js');
+const { Spot, SpotImages, Booking } = require('../../../db/models/index.js');
+const { getPreviewImage } = require('./helper.js');
+
 const router = express.Router();
-
-//? Helper functions
-
-function getPreviewImage(findAll) {
-    let preview = findAll.map(Booking => {
-        const jsonSpot = Booking.toJSON();
-        if (jsonSpot.Spot.SpotImages[0]) {
-            jsonSpot.Spot.previewImage = jsonSpot.Spot.SpotImages[0].url;
-          } else {
-            jsonSpot.Spot.previewImage = null;
-          }
-          delete jsonSpot.Spot.SpotImages
-        return jsonSpot;
-      });
-    return preview
-}
-
-
 
 //* Get all Bookings for a Spot based on the Spot's id
 router.get("/current", requireAuth, async (req, res, next) => {
-    let findAll = await Booking.findAll({
+    let bookings = await Booking.findAll({
         where: {
             userId: req.user.id
         },
@@ -42,10 +23,10 @@ router.get("/current", requireAuth, async (req, res, next) => {
         }]
     })
 
-//find avg reviews and previewImage
-let spots = getPreviewImage(findAll)
+    //find avg reviews and previewImage
+    bookings = getPreviewImage(bookings)
 
-return res.json({Bookings: spots})
+    return res.json({Bookings: bookings})
 })
 
 module.exports = router;

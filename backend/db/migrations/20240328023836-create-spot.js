@@ -53,8 +53,9 @@ module.exports = {
       description: {
         type: Sequelize.STRING
       },
+      //TODO: Type FLOAT is returned as a number where as type DECIMAL is returned as a string (precision)
       price: {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.FLOAT,
         allowNull: false,
       },
       createdAt: {
