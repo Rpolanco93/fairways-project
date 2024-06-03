@@ -37,8 +37,6 @@ router.get("/", validateSpotsQuery, async (req, res, next) => {
         }
     });
 
-
-
     let findAll = await Spot.findAll({
         where,
         include: [{

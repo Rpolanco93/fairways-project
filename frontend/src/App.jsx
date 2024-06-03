@@ -1,7 +1,8 @@
-import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import LoginFormPage from './components/LoginFormPage'
+import LoginFormPage from './components/LoginFormPage';
+import SignupFormPage from './components/SignupFormPage';
 import * as sessionActions from './store/session';
 
 function Layout() {
@@ -32,6 +33,14 @@ const router = createBrowserRouter([
       {
         path: '/login',
         element: <LoginFormPage />
+      },
+      {
+        path: '/signup',
+        element: <SignupFormPage />
+      },
+      {
+        path: '*',
+        element: <h1>Page Not Found</h1>
       }
     ]
   }
