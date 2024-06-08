@@ -2,6 +2,7 @@ const GET_SPOTS = 'spots/getAll';
 const GET_SPOT = 'spots/spotId';
 const UPDATE_SPOT = 'spots/spotId/edit';
 const DELETE_SPOT = 'spots/spotId/delete';
+const GET_SPOT_REVIEWS = 'spots/spotId/reviews'
 
 //actions
 const getSpots = (spots) => ({
@@ -11,6 +12,11 @@ const getSpots = (spots) => ({
 
 const getSpot = (spot) => ({
     type: GET_SPOT,
+    payload: spot
+})
+
+const getSpotReviews = (spot) => ({
+    type: GET_SPOT_REVIEWS,
     payload: spot
 })
 
@@ -29,6 +35,13 @@ export const fetchSpot = (id) => async (dispatch) => {
     return response;
 }
 
+export const fetchSpotReviews = (id) => async (dispatch) => {
+    const response = await fetch(`/api/spots/${id}/reviews`);
+    const data = await response.json();
+    dispatch(getSpotReviews(data));
+    return response;
+}
+
 //reducer
 const initialState = {}
 
@@ -38,6 +51,8 @@ const SpotsReducer = (state = initialState, action) => {
             return {...state, allSpots: action.payload};
         case GET_SPOT:
             return {...state, currSpot: action.payload}
+        case GET_SPOT_REVIEWS:
+            return {...state, reviews: action.payload}
         default:
             return state;
     }
