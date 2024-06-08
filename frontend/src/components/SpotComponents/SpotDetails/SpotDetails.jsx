@@ -29,7 +29,7 @@ const SpotDetails = () => {
         <div>
             <ul>
                 {spot.SpotImages.map(image => (
-                    <li key={image.id}><image>{image.url}</image></li>
+                    <li key={image.id}>{image.url}</li>
                 ))}
             </ul>
         </div>
@@ -48,7 +48,7 @@ const SpotDetails = () => {
                 </div>
             </div>
         </div>
-        <Reviews spot={id}/>
+        <Reviews spot={spot}/>
         </>
     ) : (
         <h1>Loading...</h1>
