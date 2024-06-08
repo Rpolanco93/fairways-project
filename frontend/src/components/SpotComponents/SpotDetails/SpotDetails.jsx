@@ -11,6 +11,7 @@ const SpotDetails = () => {
     const spot = useSelector(state => state.spots.currSpot)
     const {id} = useParams()
 
+
     useEffect(() => {
         dispatch(fetchSpot(id)).then(() => setIsLoaded(true))
     }, [dispatch])
