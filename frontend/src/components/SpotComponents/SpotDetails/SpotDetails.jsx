@@ -11,45 +11,47 @@ const SpotDetails = () => {
     const spot = useSelector(state => state.spots.currSpot)
     const {id} = useParams()
 
+    const comingSoon = (e) => alert("Feature Coming Soon...")
+
+    let spotImages;
+
+    if (isLoaded) {
+        spotImages = spot.SpotImages.map(image => (
+            <img src="{image.url}" />
+        ))
+    }
 
     useEffect(() => {
         dispatch(fetchSpot(id)).then(() => setIsLoaded(true))
+
     }, [dispatch])
 
-    // const owner = useSelector(state => state.spots)
-    // console.log(owner)
-    // const images = useSelector(state => state.spots.currSpot.SpotImages)
-
     return isLoaded ? (
-        <>
-        <div>
+        <div className="details-page">
+        <div className="spot-data">
             <h1>{spot.name}</h1>
             <p>{`${spot.city}, ${spot.state}, ${spot.country}`}</p>
         </div>
-        <div>
-            <ul>
-                {spot.SpotImages.map(image => (
-                    <li key={image.id}>{image.url}</li>
-                ))}
-            </ul>
+        <div className="spot-images">
+            {spotImages}
         </div>
         <div>
-            <div>
+            <div className="host-details">
                 <h2>{`Hosted by ${spot.Owner.firstName} ${spot.Owner.lastName}`}</h2>
-                <p>{spot.desciption}</p>
+                <p>{spot.description}</p>
             </div>
-            <div>
-                <div>
+            <div className="pricing-reserve">
+                <div className="pricing">
                     <h2>{`$${spot.price} night`}</h2>
                     <p>{`${spot.numReviews} reviews`}</p>
                 </div>
                 <div>
-                    <button>Reviews</button>
+                    <button onClick={comingSoon} className="reserve">Reserve</button>
                 </div>
             </div>
         </div>
         <Reviews spot={spot}/>
-        </>
+        </div>
     ) : (
         <h1>Loading...</h1>
     )
