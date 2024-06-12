@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSpot } from "../../../store/spots";
 import Reviews from "../../ReviewsComponents/Reviews";
+import imageComingSoon from './comingsoon.jpeg'
 
 
 const SpotDetails = () => {
@@ -16,7 +17,7 @@ const SpotDetails = () => {
     let spotImages;
 
     if (isLoaded) {
-        spotImages = spot.SpotImages.map(image => (
+        const getImages = spot.SpotImages.map(image => (
             <img src="{image.url}" />
         ))
     }
@@ -33,7 +34,7 @@ const SpotDetails = () => {
             <p>{`${spot.city}, ${spot.state}, ${spot.country}`}</p>
         </div>
         <div className="spot-images">
-            {spotImages}
+            {spotImages ? spotImages : <img src={imageComingSoon} />}
         </div>
         <div>
             <div className="host-details">

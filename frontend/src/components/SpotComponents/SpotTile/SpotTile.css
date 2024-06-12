@@ -13,3 +13,8 @@
     border: 1px solid #000;
     border-radius: 5px;
 }
+
+.preview-image {
+    max-width: 50%;
+    max-height: 50%
+}

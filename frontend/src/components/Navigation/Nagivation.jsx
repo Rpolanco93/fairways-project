@@ -1,12 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import ProfileButton from './ProfileButton';
 import Logo from './fairways-logo.jpg'
 import './Navigation.css';
+import { useEffect, useState } from 'react';
 
 function Navigation({ isLoaded }) {
+  const dispatch = useDispatch()
   const sessionUser = useSelector((state) => state.session.user);
   const navigate = useNavigate()
+
 
   return (
     <header className='nav-container'>
