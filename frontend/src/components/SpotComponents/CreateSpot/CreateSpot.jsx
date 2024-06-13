@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchCreateSpot } from "../../../store/spots";
 import { useNavigate } from "react-router-dom";
+import './CreateSpot.css';
 
 const CreateSpot = () => {
     const [country, setCountry] = useState('');
@@ -13,39 +14,70 @@ const CreateSpot = () => {
     const [description,setDescription] = useState('');
     const [name, setName] = useState('');
     const [price, setPrice] = useState("");
-    const [url, setUrl] = useState('');
-    const [previewImage, setPreviewImage] = useState('')
+    const [previewImage, setPreviewImage] = useState('');
+    const [imageTwo, setImageTwo] = useState('')
+    const [imageThree, setImageThree] = useState('')
+    const [imageFour, setImageFour] = useState('')
+    const [imageFive, setImageFive] = useState('')
     const [errors, setErrors] = useState({});
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const ownerId = useSelector(state => state.session.user.id)
 
-    //functions for onChange
-    const updateCountry = (e) => setCountry(e.target.value);
-    const updateAddress = (e) => setAddress(e.target.value);
-    const updateCity = (e) => setCity(e.target.value);
-    const updateState = (e) => setState(e.target.value);
-    const updateDescription = (e) => setDescription(e.target.value);
-    const updateName = (e) => setName(e.target.value);
-    const updatePrice = (e) => setPrice(e.target.value);
-    const updateUrl = (e) => setUrl(e.target.value);
+
+    //form validation
+    const validateForm = () => {
+        const formErrors = {}
+        if (!country) formErrors.country = 'Country is required';
+        if (!address) formErrors.address = 'Address is required';
+        if (!city) formErrors.city = 'City is required';
+        if (!state) formErrors.state = 'State is required';
+        if (description.length < 30) formErrors.description = 'Description needs 30 or more characters';
+        if (description.length > 255) formErrors.description = 'Description must be 255 characters or less';
+        if (!name) formErrors.name = 'Name is required';
+        if (name.length > 50) formErrors.name = 'Name must be less than 50 characters';
+        if (!price) formErrors.price = 'Price per night is required';
+        if (price < 0) formErrors.price = 'Price per day must be a positive number';
+        return formErrors
+    }
+
+    //remove errors
+    const updateState = (setFunc, field) => (e) => {
+        setFunc(e.target.value)
+        if (errors[field]) {
+            setErrors((currErrors) => {
+                const newErrors = {...currErrors};
+                delete newErrors[field]
+                return newErrors
+            })
+        }
+    }
+
 
     //handle submit and reset form
     const handleSubmit = async (e) => {
         e.preventDefault()
-        setErrors({});
-        const newSpot = {
+        const formErrors = validateForm()
+
+        if (Object.keys(formErrors).length > 0) {
+            setErrors(formErrors)
+            return alert('Please Fix All Errors.')
+        }
+
+
+        const spotData = {
+            ownerId,
             address,
             city,
             state,
             country,
             name,
             description,
-            price
+            price: parseFloat(price)
         }
 
         try {
-            await dispatch(fetchCreateSpot(newSpot))
-            console.log(newSpot)
+            const newSpot = await dispatch(fetchCreateSpot(spotData));
             navigate(`/spots/${newSpot.id}`)
         } catch (res) {
             async (res) => {
@@ -61,43 +93,51 @@ const CreateSpot = () => {
             <form onSubmit={handleSubmit}>
             <div className="spot-location">
                 <h1>Create a new Spot</h1>
-                <h3>Where's your place located?</h3>
+                <h3>Where&apos;s your place located?</h3>
                 <p>Guest will only get your exact address once they
                     booked a reservation.
                 </p>
 
-                    <label for='country'>Country</label>
+                    <label htmlFor='country'>Country</label>
                     <input
                         type='text'
-                        onChange={updateCountry}
+                        onChange={updateState(setCountry, 'country')}
                         value={country}
                         placeholder="Country"
                         name='country'
                     />
-                    <label for='address'>Address</label>
+                    {errors.country && (<p className="create-spot-error">{errors.country}</p>)}
+
+                    <label htmlFor='address'>Address</label>
                     <input
                         type='text'
-                        onChange={updateAddress}
+                        onChange={updateState(setAddress, 'address')}
                         value={address}
                         placeholder="Address"
                         name='address'
                     />
-                    <label for='city'>City</label>
+                    {errors.address && (<p className="create-spot-error">{errors.address}</p>)}
+
+                    <label htmlFor='city'>City</label>
                     <input
                         type='text'
-                        onChange={updateCity}
+                        onChange={updateState(setCity, 'city')}
                         value={city}
                         placeholder="City"
                         name='city'
                     />
-                    <label for='state'>State</label>
+                    {errors.city && (<p className="create-spot-error">{errors.city}</p>)}
+
+                    <label htmlFor='state'>State</label>
                     <input
                         type='text'
-                        onChange={updateState}
+                        onChange={updateState(setState, 'state')}
                         value={state}
                         placeholder="State"
                         name='state'
                     />
+                    {errors.state && (<p className="create-spot-error">{errors.state}</p>)}
+
                     {/* <label for='lat'>Latitude</label>
                     <input type='text'></input>
                     <label for='lng'>Longitude</label>
@@ -114,28 +154,28 @@ const CreateSpot = () => {
 
                     <input
                         type='text'
-                        onChange={updateDescription}
+                        onChange={updateState(setDescription, 'description')}
                         value={description}
                         placeholder="Description"
                         name='description'
                     />
-
+                {errors.description && (<p className="create-spot-error">{errors.description}</p>)}
             </div>
             <div className="spot-title">
                 <h3>Create a title for your spot</h3>
                 <p>
-                    Catch guests' attention with a spot title that
+                    Catch guests&apos; attention with a spot title that
                     highlights what makes your place special.
                 </p>
 
                     <input
                         type='text'
-                        onChange={updateName}
+                        onChange={updateState(setName, 'name')}
                         value={name}
                         placeholder="Name"
                         name='name'
                     />
-
+                {errors.name && (<p className="create-spot-error">{errors.name}</p>)}
             </div>
             <div className="spot-price">
                 <h3>Set a base price for your spot</h3>
@@ -147,13 +187,13 @@ const CreateSpot = () => {
                     <p> $
                         <input
                             type='text'
-                            onChange={updatePrice}
+                            onChange={updateState(setPrice, 'price')}
                             value={price}
                             placeholder="Price"
                             name='price'
                         />
                     </p>
-
+                    {errors.price && (<p className="create-spot-error">{errors.price}</p>)}
             </div>
             <div className="spot-photos">
                 <h3>Liven up your spot with photos</h3>
@@ -164,10 +204,38 @@ const CreateSpot = () => {
 
                     <input
                         type='text'
-                        onChange={setUrl}
-                        value={url}
+                        onChange={setPreviewImage}
+                        value={previewImage}
                         placeholder="Preview Image URL"
                         name='url'
+                    />
+                    <input
+                        type='text'
+                        onChange={setImageTwo}
+                        value={imageTwo}
+                        placeholder="Image URL"
+                        name='image2'
+                    />
+                    <input
+                        type='text'
+                        onChange={setImageThree}
+                        value={imageThree}
+                        placeholder="Image URL"
+                        name='image3'
+                    />
+                    <input
+                        type='text'
+                        onChange={setImageFour}
+                        value={imageFour}
+                        placeholder="Image URL"
+                        name='image4'
+                    />
+                    <input
+                        type='text'
+                        onChange={setImageFive}
+                        value={imageFive}
+                        placeholder="Image URL"
+                        name='image5'
                     />
 
             </div>

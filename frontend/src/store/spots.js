@@ -49,10 +49,11 @@ export const fetchSpotReviews = (id) => async (dispatch) => {
 }
 
 export const fetchCreateSpot = (payload) => async (dispatch) => {
-    const { address,city,state,country,name,description,price } = payload;
+    const { ownerId, address,city,state,country,name,description,price } = payload;
     const response = await fetch('/api/spots/', {
         method: 'POST',
         body: JSON.stringify({
+            ownerId,
             address,
             city,
             state,
