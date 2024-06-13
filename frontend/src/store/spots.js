@@ -1,3 +1,5 @@
+import { csrfFetch } from "./csrf";
+
 const GET_SPOTS = 'spots/getAll';
 const GET_SPOT = 'spots/spotId';
 const CREATE_SPOT = 'spots/new'
@@ -28,7 +30,7 @@ const createSpot = (spot) => ({
 
 //thunk
 export const fetchSpots = () => async (dispatch) => {
-    const response = await fetch('/api/spots/');
+    const response = await csrfFetch('/api/spots/');
     const data = await response.json();
     dispatch(getSpots(data))
     return response
