@@ -30,7 +30,7 @@ const createSpot = (spot) => ({
 
 //thunk
 export const fetchSpots = () => async (dispatch) => {
-    const response = await csrfFetch('/api/spots/');
+    const response = await csrfFetch('/api/spots');
     const data = await response.json();
     dispatch(getSpots(data))
     return response
