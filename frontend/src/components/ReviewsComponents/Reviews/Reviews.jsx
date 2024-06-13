@@ -6,7 +6,7 @@ const Reviews = ({spot}) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const dispatch = useDispatch();
     const reviews = useSelector(state => state.spots.reviews)
-    console.log(reviews)
+
     useEffect(() => {
         dispatch(fetchSpotReviews(spot.id)).then(() => setIsLoaded(true))
     }, [dispatch])

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { fetchSpots } from "../../store/spots";
+import SpotTile from "../SpotComponents/SpotTile/SpotTile";
 
 
 const LandingPage = () => {
@@ -14,18 +15,7 @@ const LandingPage = () => {
     }, [dispatch])
 
     return isLoaded ? (
-            <ul>
-                {spots.Spots.map(({id, previewImage, city, state, price, avgRating}) => {
-                    if (!avgRating) avgRating = 0;
-                    if (!previewImage) previewImage = 'Images coming soon!'
-                    return (
-                    <li key={id}>
-                        <image><NavLink to={`/spots/${id}`}>{previewImage}</NavLink></image>
-                        <div>{`${city}, ${state}, ${avgRating}`}</div>
-                        <div>{`$${price} night`}</div>
-                    </li>
-                )})}
-            </ul>
+            <SpotTile spot={spots} />
     ) : (
         <h1>Loading....</h1>
     )

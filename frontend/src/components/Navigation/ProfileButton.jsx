@@ -1,12 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { FaUserCircle } from 'react-icons/fa';
+import LoginFormModal from '../LoginFormModal';
+import SignupFormModal from '../SignupFormModal/SignupFormModal';
+import OpenModalButton from '../OpenModalButton';
 import * as sessionActions from '../../store/session';
+import './Navigation.css';
 
 function ProfileButton({ user }) {
   const dispatch = useDispatch();
   const [showMenu, setShowMenu] = useState(false);
+  const [credential, setCredential] = useState('Demo-lition');
+  const [password, setPassword] = useState('password');
   const ulRef = useRef();
+  const navigate = useNavigate();
 
   const toggleMenu = (e) => {
     e.stopPropagation(); // Keep click from bubbling up to document and triggering closeMenu
@@ -28,27 +36,54 @@ function ProfileButton({ user }) {
     return () => document.removeEventListener('click', closeMenu);
   }, [showMenu]);
 
+  const demoLogin = (e) => {
+    e.preventDefault();
+    return dispatch(sessionActions.login({ credential, password }))
+      .then(toggleMenu)
+  };
+
+
+  const closeMenu = () => setShowMenu(false);
+
   const logout = (e) => {
     e.preventDefault();
     dispatch(sessionActions.logout());
+    closeMenu();
+    navigate('/')
   };
 
   const ulClassName = "profile-dropdown" + (showMenu ? "" : " hidden");
 
   return (
-    <>
-      <button onClick={toggleMenu}>
+    <div>
+      <button onClick={toggleMenu} className='profile-button'>
         <FaUserCircle />
       </button>
-      <ul className={ulClassName} ref={ulRef}>
-        <li>{user.username}</li>
-        <li>{user.firstName} {user.lastName}</li>
-        <li>{user.email}</li>
-        <li>
-          <button onClick={logout}>Log Out</button>
-        </li>
-      </ul>
-    </>
+      <div className={ulClassName} ref={ulRef}>
+        {user ? (
+          <div className='user-details'>
+            <span>Hello, {user.firstName}!</span>
+            <span>Email: {user.email}</span>
+            <span><Link to='/spots/current'>Manage Spots</Link></span>
+            <button onClick={logout}>Log Out</button>
+          </div>
+        ) : (
+            <div className='auth-buttons'>
+              <OpenModalButton
+                buttonText="Log In"
+                onButtonClick={closeMenu}
+                modalComponent={<LoginFormModal />}
+              />
+              <OpenModalButton
+                buttonText="Sign Up"
+                onButtonClick={closeMenu}
+                modalComponent={<SignupFormModal />}
+              />
+              <button onClick={demoLogin}>Demo Login</button>
+            </div>
+        )}
+      </div>
+    </div>
   );
 }
 
