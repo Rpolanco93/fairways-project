@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { FaUserCircle } from 'react-icons/fa';
 import LoginFormModal from '../LoginFormModal';
 import SignupFormModal from '../SignupFormModal/SignupFormModal';
@@ -11,8 +11,8 @@ import './Navigation.css';
 function ProfileButton({ user }) {
   const dispatch = useDispatch();
   const [showMenu, setShowMenu] = useState(false);
-  const [credential, setCredential] = useState('Demo-lition');
-  const [password, setPassword] = useState('password');
+  const [credential, setCredential] = useState('');
+  const [password, setPassword] = useState('');
   const ulRef = useRef();
   const navigate = useNavigate();
 
@@ -38,6 +38,8 @@ function ProfileButton({ user }) {
 
   const demoLogin = (e) => {
     e.preventDefault();
+    setCredential('Demo-lition')
+    setPassword('password')
     return dispatch(sessionActions.login({ credential, password }))
       .then(toggleMenu)
   };

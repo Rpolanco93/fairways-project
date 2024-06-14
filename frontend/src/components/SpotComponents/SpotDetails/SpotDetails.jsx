@@ -12,20 +12,20 @@ const SpotDetails = () => {
     const spot = useSelector(state => state.spots.currSpot)
     const {id} = useParams()
 
-    const comingSoon = (e) => alert("Feature Coming Soon...")
+    const comingSoon = () => alert("Feature Coming Soon...")
 
     let spotImages;
 
     if (isLoaded) {
-        const getImages = spot.SpotImages.map(image => (
-            <img src="{image.url}" />
+        spotImages = spot.SpotImages.map(image => (
+            <img src={image.url} key={image.id}/>
         ))
     }
 
     useEffect(() => {
         dispatch(fetchSpot(id)).then(() => setIsLoaded(true))
 
-    }, [dispatch])
+    }, [dispatch, id])
 
     return isLoaded ? (
         <div className="details-page">
