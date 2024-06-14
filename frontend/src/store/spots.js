@@ -3,7 +3,6 @@ import { csrfFetch } from "./csrf";
 const GET_SPOTS = 'spots/getAll';
 const GET_SPOT = 'spots/spotId';
 const CREATE_SPOT = 'spots/new'
-// const UPDATE_SPOT = 'spots/spotId/edit';
 // const DELETE_SPOT = 'spots/spotId/delete';
 const GET_SPOT_REVIEWS = 'spots/spotId/reviews'
 
@@ -27,6 +26,7 @@ const createSpot = (spot) => ({
     type: CREATE_SPOT,
     payload: spot
 })
+
 
 //thunk
 export const fetchSpots = () => async (dispatch) => {
@@ -59,9 +59,28 @@ export const fetchSpotReviews = (id) => async (dispatch) => {
 
 export const fetchCreateSpot = (payload) => async (dispatch) => {
     const { ownerId, address,city,state,country,name,description,price } = payload;
-    console.log('create spot payload: ', payload)
     const response = await csrfFetch('/api/spots', {
         method: 'POST',
+        body: JSON.stringify({
+            ownerId,
+            address,
+            city,
+            state,
+            country,
+            name,
+            description,
+            price
+      })
+    })
+    const data = await response.json();
+    dispatch(createSpot(data))
+    return response;
+}
+
+export const fetchEditSpot = (payload) => async (dispatch) => {
+    const { id, ownerId, address,city,state,country,name,description,price } = payload;
+    const response = await csrfFetch(`/api/spots/${id}`, {
+        method: 'PUT',
         body: JSON.stringify({
             ownerId,
             address,
