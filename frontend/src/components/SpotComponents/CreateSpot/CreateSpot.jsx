@@ -25,6 +25,7 @@ const CreateSpot = () => {
     const ownerId = useSelector(state => state.session.user.id)
 
 
+
     //form validation
     const validateForm = () => {
         const formErrors = {}

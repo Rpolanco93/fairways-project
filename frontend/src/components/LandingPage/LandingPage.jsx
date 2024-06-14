@@ -11,7 +11,8 @@ const LandingPage = () => {
 
     useEffect(() => {
         dispatch(fetchSpots()).then(() => setIsLoaded(true))
-    }, [dispatch])
+        console.error('this is landing page', spots)
+    }, [dispatch, spots])
 
     return isLoaded ? (
             <SpotTile spot={spots} />

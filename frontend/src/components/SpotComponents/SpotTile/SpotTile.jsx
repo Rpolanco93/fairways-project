@@ -3,6 +3,7 @@ import imageComingSoon from './comingsoon.jpeg'
 import './SpotTile.css';
 
 const SpotTile = ({spot}) => {
+    console.error('this is spotTile', spot)
     const spotTiles = spot.Spots.map(({id, previewImage, city, state, price, avgRating}) => {
         if (!avgRating) avgRating = 0;
         if (!previewImage) previewImage = imageComingSoon;
