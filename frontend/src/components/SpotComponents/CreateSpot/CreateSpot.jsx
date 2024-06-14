@@ -23,6 +23,10 @@ const CreateSpot = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const ownerId = useSelector(state => state.session.user.id)
+    // const currSpot = useSelector(state => state)
+    // console.log(currSpot)
+    const pageUrl = window.location.pathname
+    console.log(pageUrl)
 
 
 

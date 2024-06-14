@@ -1,11 +1,28 @@
-import { NavLink } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { fetchSpot } from '../../../store/spots';
 import imageComingSoon from './comingsoon.jpeg'
 import './SpotTile.css';
+import { useState } from 'react';
 
 const SpotTile = ({payload}) => {
     const { spots, owner } = payload;
+    const [errors, setErrors] = useState()
+    const dispatch = useDispatch()
     const navigate = useNavigate()
+
+    const editSpotButton = (id) => {
+        try {
+            dispatch(fetchSpot(id));
+            navigate(`/spots/${id}/edit`);
+        } catch (res) {
+            async (res) => {
+                const data = await res.json();
+                if (data && data.errors) setErrors(data.errors);
+                return errors;
+              }
+        }
+    }
 
     const spotTiles = spots.Spots.map(({id, previewImage, city, state, price, avgRating}) => {
         if (!avgRating) avgRating = 0;
@@ -19,7 +36,7 @@ const SpotTile = ({payload}) => {
                     <div>{`$${price} night`}</div>
                     {owner ? (
                         <div className='update-delete'>
-                            <button className='update-button' onClick={() => navigate(`/spots/${id}/edit`)}>Update</button>
+                            <button className='update-button' onClick={() => editSpotButton(id)}>Update</button>
                             <button className='delete-button' onClick={() => navigate('USE MODAL')}>Delete</button>
                         </div>
                     ) : ('')}
