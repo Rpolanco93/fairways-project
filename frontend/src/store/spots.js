@@ -36,6 +36,13 @@ export const fetchSpots = () => async (dispatch) => {
     return response
 }
 
+export const fetchManageSpots = () => async (dispatch) => {
+    const response = await csrfFetch('/api/spots/current');
+    const data = await response.json();
+    dispatch(getSpots(data))
+    return response
+}
+
 export const fetchSpot = (id) => async (dispatch) => {
     const response = await csrfFetch(`/api/spots/${id}`);
     const data = await response.json();
@@ -52,6 +59,7 @@ export const fetchSpotReviews = (id) => async (dispatch) => {
 
 export const fetchCreateSpot = (payload) => async (dispatch) => {
     const { ownerId, address,city,state,country,name,description,price } = payload;
+    console.log('create spot payload: ', payload)
     const response = await csrfFetch('/api/spots', {
         method: 'POST',
         body: JSON.stringify({
@@ -81,6 +89,12 @@ const SpotsReducer = (state = initialState, action) => {
             return {...state, currSpot: action.payload}
         case GET_SPOT_REVIEWS:
             return {...state, reviews: action.payload}
+        case CREATE_SPOT: {
+            const newState = {...state}
+            newState.allSpots[action.payload.id] = action.payload
+            return newState
+        }
+
         default:
             return state;
     }
