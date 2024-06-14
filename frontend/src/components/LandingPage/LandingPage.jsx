@@ -11,11 +11,10 @@ const LandingPage = () => {
 
     useEffect(() => {
         dispatch(fetchSpots()).then(() => setIsLoaded(true))
-        console.error('this is landing page', spots)
-    }, [dispatch, spots])
+    }, [dispatch])
 
     return isLoaded ? (
-            <SpotTile spot={spots} />
+            <SpotTile payload={{spots}} />
     ) : (
         <h1>Loading....</h1>
     )

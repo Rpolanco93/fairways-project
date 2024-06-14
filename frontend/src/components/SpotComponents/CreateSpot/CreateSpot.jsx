@@ -9,8 +9,8 @@ const CreateSpot = () => {
     const [address, setAddress] = useState('');
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
-    // const [lat, setLat] = useState('');
-    // const [lng, setLng] = useState('');
+    const [lat, setLat] = useState('');
+    const [lng, setLng] = useState('');
     const [description,setDescription] = useState('');
     const [name, setName] = useState('');
     const [price, setPrice] = useState("");
@@ -65,6 +65,10 @@ const CreateSpot = () => {
             return alert('Please Fix All Errors.')
         }
 
+        if (!lat) setLat('33');
+        if (!lng) setLng('82')
+
+        console.log("lat, long", lat, lng)
 
         const spotData = {
             ownerId,
@@ -74,11 +78,14 @@ const CreateSpot = () => {
             country,
             name,
             description,
-            price: parseFloat(price)
+            price: parseFloat(price),
+            lat: parseFloat(lat),
+            lng: parseFloat(lng)
         }
 
         try {
-            const newSpot = await dispatch(fetchCreateSpot(spotData));
+            const newSpot = dispatch(fetchCreateSpot(spotData));
+            console.log(newSpot)
             navigate(`/spots/${newSpot.id}`)
         } catch (res) {
             async (res) => {
@@ -139,10 +146,22 @@ const CreateSpot = () => {
                     />
                     {errors.state && (<p className="create-spot-error">{errors.state}</p>)}
 
-                    {/* <label for='lat'>Latitude</label>
-                    <input type='text'></input>
-                    <label for='lng'>Longitude</label>
-                    <input type='text'></input> */}
+                    <label htmlFor='lat'>Latitude</label>
+                    <input
+                        type='text'
+                        onChange={updateState(setLat, 'lat')}
+                        value={lat}
+                        placeholder="Lat is optional"
+                        name='lat'
+                    />
+                    <label htmlFor='lng'>Longitude</label>
+                    <input
+                        type='text'
+                        onChange={updateState(setLng, 'lng')}
+                        value={lng}
+                        placeholder="Lng is optional"
+                        name='lng'
+                    />
 
             </div>
             <div className="spot-description">
