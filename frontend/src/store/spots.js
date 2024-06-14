@@ -3,8 +3,8 @@ import { csrfFetch } from "./csrf";
 const GET_SPOTS = 'spots/getAll';
 const GET_SPOT = 'spots/spotId';
 const CREATE_SPOT = 'spots/new'
-const UPDATE_SPOT = 'spots/spotId/edit';
-const DELETE_SPOT = 'spots/spotId/delete';
+// const UPDATE_SPOT = 'spots/spotId/edit';
+// const DELETE_SPOT = 'spots/spotId/delete';
 const GET_SPOT_REVIEWS = 'spots/spotId/reviews'
 
 //actions
@@ -37,14 +37,14 @@ export const fetchSpots = () => async (dispatch) => {
 }
 
 export const fetchSpot = (id) => async (dispatch) => {
-    const response = await fetch(`/api/spots/${id}`);
+    const response = await csrfFetch(`/api/spots/${id}`);
     const data = await response.json();
     dispatch(getSpot(data))
     return response;
 }
 
 export const fetchSpotReviews = (id) => async (dispatch) => {
-    const response = await fetch(`/api/spots/${id}/reviews`);
+    const response = await csrfFetch(`/api/spots/${id}/reviews`);
     const data = await response.json();
     dispatch(getSpotReviews(data));
     return response;
@@ -52,7 +52,7 @@ export const fetchSpotReviews = (id) => async (dispatch) => {
 
 export const fetchCreateSpot = (payload) => async (dispatch) => {
     const { ownerId, address,city,state,country,name,description,price } = payload;
-    const response = await fetch('/api/spots/', {
+    const response = await csrfFetch('/api/spots', {
         method: 'POST',
         body: JSON.stringify({
             ownerId,

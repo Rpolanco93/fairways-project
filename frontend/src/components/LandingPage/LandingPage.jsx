@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
 import { fetchSpots } from "../../store/spots";
 import SpotTile from "../SpotComponents/SpotTile/SpotTile";
 

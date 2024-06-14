@@ -9,7 +9,7 @@ const Reviews = ({spot}) => {
 
     useEffect(() => {
         dispatch(fetchSpotReviews(spot.id)).then(() => setIsLoaded(true))
-    }, [dispatch])
+    }, [dispatch, spot.id])
 
     return isLoaded ? (
         <div>

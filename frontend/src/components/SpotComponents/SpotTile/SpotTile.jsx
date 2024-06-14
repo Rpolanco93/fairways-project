@@ -7,7 +7,7 @@ const SpotTile = ({spot}) => {
         if (!avgRating) avgRating = 0;
         if (!previewImage) previewImage = imageComingSoon;
         return (
-            <NavLink to={`/spots/${id}`}>
+            <NavLink to={`/spots/${id}`} key={id}>
                 <div className="spot-tile">
                     <img src={previewImage} className="preview-img"/>
                     <div>{`${city}, ${state}, ${avgRating}`}</div>
