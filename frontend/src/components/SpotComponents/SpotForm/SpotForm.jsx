@@ -77,27 +77,23 @@ const SpotForm = ({spot}) => {
             lng: parseFloat(lng)
         }
 
-
-        if (!spot) {
-            let newSpot;
-            dispatch(fetchCreateSpot(spotData))
-                .then(async (res) => await res.json(), (error) => {throw(error)})
-                .catch(async res => {
-                    const errors = await res.json()
-                    setErrors(errors.errors)
-            })
-            navigate(`/spots/${newSpot.id}`)
-        }
-
         if (spot) {
             dispatch(fetchEditSpot({...spotData, spotId: spot.id}))
-                .then(async (res) => await res.json(), (error) => {throw(error)})
-                .then(spot => navigate(`/spots/${spot.id}`))
+                .then( () =>  navigate(`/spots/${spot.id}`))
                 .catch(async res => {
                     const errors = await res.json()
                     setErrors(errors.errors)
-        })
+                })
+            return;
         }
+
+
+        dispatch(fetchCreateSpot(spotData))
+            .then((newSpot) => navigate(`/spots/${newSpot.id}`))
+            .catch(async res => {
+                const errors = res
+                setErrors(errors.errors)
+        })
 
     }
 
