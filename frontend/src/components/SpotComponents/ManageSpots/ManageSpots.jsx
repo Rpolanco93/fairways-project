@@ -7,7 +7,7 @@ import SpotTile from "../SpotTile/SpotTile";
 const ManageSpots = () => {
     const dispatch = useDispatch();
     const [isLoaded, setIsLoaded] = useState(false);
-    const spots = useSelector(state => state.spots.allSpots)
+    const spots = useSelector(state => state.spots.mySpots)
 
     useEffect(() => {
         dispatch(fetchManageSpots()).then(() => setIsLoaded(true))

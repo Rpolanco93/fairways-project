@@ -12,7 +12,6 @@ const SpotTile = ({payload}) => {
         navigate(`/spots/${id}/edit`)
     }
 
-
     const spotTiles = spots.Spots.map(({id, previewImage, city, state, price, avgRating}) => {
         if (!avgRating) avgRating = 0;
         if (!previewImage) previewImage = imageComingSoon;
