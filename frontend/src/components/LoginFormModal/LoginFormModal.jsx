@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as sessionActions from '../../store/session';
 import { useDispatch } from 'react-redux';
 import { useModal } from '../../context/Modal';
@@ -8,8 +8,15 @@ const LoginFormModal = () => {
     const dispatch = useDispatch();
     const [credential, setCredential] = useState("");
     const [password, setPassword] = useState("");
+    const [isDisabled, setIsDisabled] = useState(true)
     const [errors, setErrors] = useState({});
     const { closeModal } = useModal();
+
+    useEffect(() => {
+      setIsDisabled(credential.length < 4 || password.length < 6)
+      // if (Object.values(errors)) setErrors({})
+
+    }, [credential, password])
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -19,6 +26,7 @@ const LoginFormModal = () => {
         .catch(async (res) => {
           const data = await res.json();
           if (data && data.errors) setErrors(data.errors);
+          if (data && data.message) setErrors(data.message);
         });
     };
 
@@ -44,10 +52,10 @@ const LoginFormModal = () => {
             required
           />
         </label>
-        {errors.credential && (
-          <p>{errors.credential}</p>
+        {Object.values(errors).length > 0 && (
+          <p>The provided credentials were invalid</p>
         )}
-        <button type="submit">Log In</button>
+        <button type="submit" disabled={isDisabled}>Log In</button>
       </form>
     </>
   );
