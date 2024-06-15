@@ -11,8 +11,6 @@ import './Navigation.css';
 function ProfileButton({ user }) {
   const dispatch = useDispatch();
   const [showMenu, setShowMenu] = useState(false);
-  const [credential, setCredential] = useState('');
-  const [password, setPassword] = useState('');
   const ulRef = useRef();
   const navigate = useNavigate();
 
@@ -38,9 +36,7 @@ function ProfileButton({ user }) {
 
   const demoLogin = (e) => {
     e.preventDefault();
-    setCredential('Demo-lition')
-    setPassword('password')
-    return dispatch(sessionActions.login({ credential, password }))
+    dispatch(sessionActions.login({ credential: 'Demo-lition', password: 'password' }))
       .then(toggleMenu)
   };
 

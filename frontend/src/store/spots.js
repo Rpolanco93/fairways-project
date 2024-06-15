@@ -37,7 +37,7 @@ export const fetchSpots = () => async (dispatch) => {
 }
 
 export const fetchManageSpots = () => async (dispatch) => {
-    const response = await csrfFetch('/api/spots/current');
+    const response = await csrfFetch(`/api/spots/current`);
     const data = await response.json();
     dispatch(getSpots(data))
     return response
@@ -78,10 +78,11 @@ export const fetchCreateSpot = (payload) => async (dispatch) => {
 }
 
 export const fetchEditSpot = (payload) => async (dispatch) => {
-    const { id, ownerId, address,city,state,country,name,description,price } = payload;
-    const response = await csrfFetch(`/api/spots/${id}`, {
+    const { spotId, ownerId, address,city,state,country,name,description,price } = payload;
+    const response = await csrfFetch(`/api/spots/${spotId}`, {
         method: 'PUT',
         body: JSON.stringify({
+            spotId,
             ownerId,
             address,
             city,
@@ -101,6 +102,7 @@ export const fetchEditSpot = (payload) => async (dispatch) => {
 const initialState = {}
 
 const SpotsReducer = (state = initialState, action) => {
+    console.log('this is the action', action)
     switch (action.type) {
         case GET_SPOTS:
             return {...state, allSpots: action.payload};

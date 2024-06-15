@@ -16,8 +16,11 @@ input:focus {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.94);
 }
 
+button.standard:disabled {
+    color: #666;
+}
 
-button[type="submit"] {
+/* button[type="submit"] {
     background-color: blue;
     width: 180px;
     display: block;
@@ -36,4 +39,4 @@ button[type="submit"] {
 
 button[type="submit"]:hover {
     background-color: darkblue;
-}
+} */
