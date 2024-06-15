@@ -9,6 +9,7 @@ const ManageSpots = () => {
     const [isLoaded, setIsLoaded] = useState(false);
     const spots = useSelector(state => state.spots.mySpots)
 
+
     useEffect(() => {
         dispatch(fetchManageSpots()).then(() => setIsLoaded(true))
     }, [dispatch])

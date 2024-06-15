@@ -1,15 +1,25 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import imageComingSoon from './comingsoon.jpeg'
+import { useModal } from '../../../context/Modal';
+import DeleteSpotModal from '../DeleteSpotModal/DeleteSpotModal';
 import './SpotTile.css';
 
 const SpotTile = ({payload}) => {
+    const { setModalContent } = useModal()
     const { spots, owner } = payload;
     const navigate = useNavigate()
+
 
     const updateButton = (e, id) => {
         e.stopPropagation()
         e.preventDefault()
         navigate(`/spots/${id}/edit`)
+    }
+
+    const deleteButton = (e, id) => {
+        e.stopPropagation()
+        e.preventDefault()
+        setModalContent(<DeleteSpotModal spotId={id} />)
     }
 
     const spotTiles = spots.Spots.map(({id, previewImage, city, state, price, avgRating}) => {
@@ -24,7 +34,7 @@ const SpotTile = ({payload}) => {
                     {owner ? (
                         <div className='update-delete'>
                             <button className='update-button' onClick={e => updateButton(e, id)}>Update</button>
-                            <button className='delete-button' onClick={() => navigate('USE MODAL')}>Delete</button>
+                            <button className='delete-button' onClick={e => deleteButton(e, id)}>Delete</button>
                         </div>
                     ) : ('')}
                 </div>

@@ -4,7 +4,7 @@ const GET_SPOTS = 'spots/getAll';
 const GET_SPOT = 'spots/spotId';
 const GET_MY_SPOTS = 'spots/current'
 const CREATE_SPOT = 'spots/new'
-// const DELETE_SPOT = 'spots/spotId/delete';
+const DELETE_SPOT = 'spots/spotId/delete';
 const GET_SPOT_REVIEWS = 'spots/spotId/reviews'
 
 //actions
@@ -33,11 +33,21 @@ const createSpot = (spot) => ({
     payload: spot
 })
 
+const deleteSpot = (spotId) => ({
+    type: DELETE_SPOT,
+    payload: spotId
+})
+
+//helper for organizing return data
+const sortObj = (obj) => {
+    console.log('helper func', obj)
+}
 
 //thunk
 export const fetchSpots = () => async (dispatch) => {
     const response = await csrfFetch('/api/spots');
     const data = await response.json();
+    sortObj(data)
     dispatch(getSpots(data))
     return response
 }
@@ -80,7 +90,7 @@ export const fetchCreateSpot = (payload) => async (dispatch) => {
     })
     const data = await response.json();
     dispatch(createSpot(data))
-    return response;
+    return data;
 }
 
 export const fetchEditSpot = (payload) => async (dispatch) => {
@@ -104,6 +114,39 @@ export const fetchEditSpot = (payload) => async (dispatch) => {
     return response;
 }
 
+export const fetchDeleteSpot = (spotId) => async (dispatch) => {
+    // const response = await csrfFetch(`/api/spots/${spotId}`, {
+    //     method: 'DELETE'
+    // });
+
+    // if (response.ok) {
+    //     dispatch(deleteSpot(spotId))
+    // }
+    dispatch(deleteSpot(spotId))
+}
+
+//helper for reducer
+const removeSpotFromStore = async (newState, spotId) => {
+    if (newState.allSpots) {
+        console.log(newState.allSpots, spotId)
+        // let index;
+        // let allSpots = newState.allSpots
+        // let spotsArr = Object.values(allSpots)
+        // // console.log('before splice ', spotsArr)
+        // for (let i = 0; i < spotsArr.length; i++ ) {
+        //     let spot = spotsArr[i]
+        //     if (spot.id == spotId) index = i
+        // }
+        // spotsArr.splice(index)
+        // // console.log('after splice', spotsArr)
+        // newState = {...newState}
+    }
+
+    return newState
+}
+
+
+
 //reducer
 const initialState = {}
 
@@ -121,6 +164,9 @@ const SpotsReducer = (state = initialState, action) => {
             const newState = {...state}
             newState.allSpots[action.payload.id] = action.payload
             return newState
+        }
+        case DELETE_SPOT: {
+            return removeSpotFromStore({...state}, action.payload)
         }
 
         default:
