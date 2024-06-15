@@ -9,7 +9,7 @@ const EditSpot = () => {
     const [isLoaded, setIsLoaded] = useState(false)
     const {id} = useParams()
     const spot = useSelector(state => state.spots.currSpot)
-    console.log(id)
+
 
     useEffect(() => {
         dispatch(fetchSpot(id)).then(setIsLoaded(true))

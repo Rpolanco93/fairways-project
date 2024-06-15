@@ -2,6 +2,7 @@ import { csrfFetch } from "./csrf";
 
 const GET_SPOTS = 'spots/getAll';
 const GET_SPOT = 'spots/spotId';
+const GET_MY_SPOTS = 'spots/current'
 const CREATE_SPOT = 'spots/new'
 // const DELETE_SPOT = 'spots/spotId/delete';
 const GET_SPOT_REVIEWS = 'spots/spotId/reviews'
@@ -12,6 +13,11 @@ const getSpots = (spots) => ({
     payload: spots
 })
 
+const getMySpots = (spots) => ({
+    type: GET_MY_SPOTS,
+    payload: spots
+})
+
 const getSpot = (spot) => ({
     type: GET_SPOT,
     payload: spot
@@ -19,7 +25,7 @@ const getSpot = (spot) => ({
 
 const getSpotReviews = (spot) => ({
     type: GET_SPOT_REVIEWS,
-    payload: spot
+    payload: {...spot}
 })
 
 const createSpot = (spot) => ({
@@ -39,7 +45,7 @@ export const fetchSpots = () => async (dispatch) => {
 export const fetchManageSpots = () => async (dispatch) => {
     const response = await csrfFetch(`/api/spots/current`);
     const data = await response.json();
-    dispatch(getSpots(data))
+    dispatch(getMySpots({...data}))
     return response
 }
 
@@ -102,12 +108,13 @@ export const fetchEditSpot = (payload) => async (dispatch) => {
 const initialState = {}
 
 const SpotsReducer = (state = initialState, action) => {
-    console.log('this is the action', action)
     switch (action.type) {
         case GET_SPOTS:
             return {...state, allSpots: action.payload};
         case GET_SPOT:
-            return {...state, currSpot: action.payload}
+            return {...state, currSpot: action.payload};
+        case GET_MY_SPOTS:
+            return {...state, mySpots: action.payload};
         case GET_SPOT_REVIEWS:
             return {...state, reviews: action.payload}
         case CREATE_SPOT: {
