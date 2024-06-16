@@ -34,6 +34,12 @@
 
 .pricing {
     display: flex;
+    flex-direction: column;
+    text-align: end;
+}
+
+.spot-rating {
+    display: flex;
     flex-direction: row;
     text-align: end;
 }
