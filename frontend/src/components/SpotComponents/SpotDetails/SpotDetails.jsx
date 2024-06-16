@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchSpot } from "../../../store/spots";
 import Reviews from "../../ReviewsComponents/Reviews";
 import imageComingSoon from './comingsoon.jpeg'
+import './SpotDetails.css'
 
 
 const SpotDetails = () => {
@@ -36,18 +37,19 @@ const SpotDetails = () => {
         <div className="spot-images">
             {spotImages ? spotImages : <img src={imageComingSoon} />}
         </div>
-        <div>
+        <div className="spot-description">
             <div className="host-details">
                 <h2>{`Hosted by ${spot.Owner.firstName} ${spot.Owner.lastName}`}</h2>
                 <p>{spot.description}</p>
             </div>
             <div className="pricing-reserve">
                 <div className="pricing">
-                    <h2>{`$${spot.price} night`}</h2>
+                    <h2>{`$${spot.price}`}</h2>
+                    <p className="pricing-ptags">night</p>
                     <p>{`${spot.numReviews} reviews`}</p>
                 </div>
-                <div>
-                    <button onClick={comingSoon} className="reserve">Reserve</button>
+                <div className="reserve">
+                    <button onClick={comingSoon} className="reserve-button">Reserve</button>
                 </div>
             </div>
         </div>

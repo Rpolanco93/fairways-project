@@ -1,0 +1,8 @@
+.review-header {
+    display: flex;
+    flex-direction: row;
+}
+
+.review-data {
+    border-bottom: solid gray;
+}

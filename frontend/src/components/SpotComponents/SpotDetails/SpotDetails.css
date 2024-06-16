@@ -1,4 +1,60 @@
+.details-page {
+    padding: 3px 20px;
+    margin: 10px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
 .spot-data {
     display: flex;
+    justify-content:flex-start;
+    flex-direction: column;
+}
+
+.spot-images {
+    display: flex;
+}
+
+.spot-description {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border-bottom: solid black;
+    padding-bottom: 15px;
+    margin-bottom: 10px;
+}
+
+.pricing-reserve {
+    border: solid black;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    padding: 3px 20px;
+}
+
+.pricing {
+    display: flex;
+    flex-direction: row;
+    text-align: end;
+}
+
+.reserve {
+    padding: 5px;
+    max-width: 500px;
+}
+
+.reserve-button {
+    display: block;
+    width: 100%;
+    border: none;
+    background-color: orangered;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    color: white;
+}
+
+.pricing-ptags {
     justify-content: center;
 }
