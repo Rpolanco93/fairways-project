@@ -6,6 +6,8 @@ const GET_MY_SPOTS = 'spots/current'
 const CREATE_SPOT = 'spots/new'
 const DELETE_SPOT = 'spots/spotId/delete';
 const GET_SPOT_REVIEWS = 'spots/spotId/reviews'
+const CREATE_REVIEW = 'spots/spotId/reviews'
+const DELETE_REVIEW = 'reviews/reviewId'
 
 //actions
 const getSpots = (spots) => ({
@@ -38,6 +40,17 @@ const deleteSpot = (spotId) => ({
     payload: spotId
 })
 
+const createReview = (review) => ({
+    type: CREATE_REVIEW,
+    payload: review
+})
+
+const deleteReview = (reviewId) => ({
+    type: DELETE_REVIEW,
+    payload: reviewId
+})
+
+
 //helper for organizing return data
 const sortObj = (obj) => {
     console.log('helper func', obj)
@@ -64,13 +77,6 @@ export const fetchSpot = (id) => async (dispatch) => {
     const data = await response.json();
     dispatch(getSpot(data))
     return response;
-}
-
-export const fetchSpotReviews = (id) => async (dispatch) => {
-    const response = await csrfFetch(`/api/spots/${id}/reviews`);
-    const data = await response.json();
-    dispatch(getSpotReviews(data));
-    return {...data.Reviews};
 }
 
 export const fetchCreateSpot = (payload) => async (dispatch) => {
@@ -125,6 +131,37 @@ export const fetchDeleteSpot = (spotId) => async (dispatch) => {
     // dispatch(deleteSpot(spotId))
 }
 
+export const fetchSpotReviews = (id) => async (dispatch) => {
+    const response = await csrfFetch(`/api/spots/${id}/reviews`);
+    const data = await response.json();
+    dispatch(getSpotReviews(data));
+    return {...data.Reviews};
+}
+
+export const fetchCreateReview = (payload) => async (dispatch) => {
+    const { spotId, review, stars  } = payload;
+    const response = await csrfFetch(`/api/spots/${spotId}/reviews`, {
+        method: 'POST',
+        body: JSON.stringify({
+            review,
+            stars
+      })
+    })
+    const data = await response.json();
+    dispatch(createReview(data))
+    return data;
+}
+
+export const fetchDeleteReview = (reviewId) => async (dispatch) => {
+    const response = await csrfFetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE'
+    });
+
+    if (response.ok) {
+        dispatch(deleteReview(reviewId))
+    }
+}
+
 // //helper for reducer
 // const removeSpotFromStore =  () => {
 //     try {
@@ -138,7 +175,13 @@ export const fetchDeleteSpot = (spotId) => async (dispatch) => {
 
 
 //reducer
-const initialState = {}
+const initialState = {
+    allSpots: {},
+    currSpot: null,
+    mySpots: {},
+    reviews: {},
+    images: {}
+};
 
 const SpotsReducer = (state = initialState, action) => {
     switch (action.type) {
@@ -148,8 +191,13 @@ const SpotsReducer = (state = initialState, action) => {
             return {...state, currSpot: action.payload};
         case GET_MY_SPOTS:
             return {...state, mySpots: action.payload};
-        case GET_SPOT_REVIEWS:
-            return {...state, reviews: action.payload}
+        case GET_SPOT_REVIEWS:{
+            const newState = { ...state, reviews: {} };
+            action.payload.Reviews.forEach(review => {
+                newState.reviews[review.id] = review;
+            })
+            return newState
+        }
         case CREATE_SPOT: {
             const newState = {...state}
             newState.allSpots[action.payload.id] = action.payload
@@ -186,7 +234,17 @@ const SpotsReducer = (state = initialState, action) => {
 
             return {...state, allSpots: newAllSpots, mySpots: newMySpots}
         }
-
+        case CREATE_REVIEW:{
+            const newState = {...state}
+            newState.reviews[action.payload.id] = action.payload
+            return newState
+        }
+        case DELETE_REVIEW: {
+            const reviewId = action.payload
+            const newState = {...state, reviews: {...state.reviews}}
+            delete newState.reviews[reviewId]
+            return newState
+        }
         default:
             return state;
     }

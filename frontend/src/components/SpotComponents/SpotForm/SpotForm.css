@@ -1,0 +1,21 @@
+.spot-form {
+    margin: 20px;
+}
+
+.spotForm-button {
+    display: block;
+    /* width: 100%; */
+    margin-top: 15px;
+    border: none;
+    background-color: orangered;
+    align-self: center;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    color: white;
+}
+
+.create-spot-error {
+    color: red;
+}

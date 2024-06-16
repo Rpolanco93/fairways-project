@@ -1,6 +1,7 @@
 import { useDispatch } from 'react-redux';
 import { useModal } from '../../../context/Modal';
 import { fetchDeleteSpot } from '../../../store/spots';
+import './DeleteSpot.css'
 
 const DeleteSpotModal = ({spotId}) => {
     const dispatch = useDispatch()
@@ -19,8 +20,8 @@ const DeleteSpotModal = ({spotId}) => {
     };
 
     return (
-        <>
-            <h1>Confirm Delete</h1>
+        <div className='delete-modal'>
+            <h1 className='delete-modal-title'>Confirm Delete</h1>
             <p className='delete-message'>
                 Are you sure you want to remove this spot from
                 the listings?
@@ -41,7 +42,7 @@ const DeleteSpotModal = ({spotId}) => {
                     No (Keep Spot)
                 </button>
             </form>
-        </>
+        </div>
     )
 }
 

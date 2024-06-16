@@ -1,34 +1,25 @@
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchSpotReviews } from "../../../store/spots";
+import { useModal } from '../../../context/Modal';
+import DeleteReviewModal from "../DeleteReviewModal/DeleteReviewModal";
 import { FaStar } from "react-icons/fa";
 import { LuDot } from "react-icons/lu";
 import './Reviews.css'
 
 const Reviews = ({spot}) => {
+    const { setModalContent } = useModal()
     const [isLoaded, setIsLoaded] = useState(false);
     const dispatch = useDispatch();
     const reviews = useSelector(state => state.spots.reviews)
     const sessionUser = useSelector(state => state.session.user)
     const ownerId = spot.Owner.id
     let isOwner;
-    const months = {
-        '01': 'January',
-        '02': 'February',
-        '03': 'March',
-        '04': 'April',
-        '05': 'May',
-        '06': 'June',
-        '07': 'July',
-        '08': 'August',
-        '09': 'September',
-        '10': 'October',
-        '11': 'November',
-        '12': 'December'
-    }
+
+    console.log(reviews)
 
     function orderReviews() {
-        let unordered = reviews.Reviews
+        let unordered = Object.values(reviews)
         let ordered = unordered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         return ordered
     }
@@ -40,6 +31,11 @@ const Reviews = ({spot}) => {
 
     if (sessionUser && sessionUser.id == ownerId) isOwner = true;
 
+    const deleteButton = (e, id) => {
+        e.stopPropagation()
+        e.preventDefault()
+        setModalContent(<DeleteReviewModal reviewId={id} />)
+    }
 
     return isLoaded ? (
         <div>
@@ -69,18 +65,20 @@ const Reviews = ({spot}) => {
                     </div> )}
                     {spot.numReviews ? (
                     orderReviews().map(review => {
-                        let year = review.createdAt.split('-')[0]
-                        let month = months[review.createdAt.split('-')[1]]
                         return (
                         <li key={review.id} className="review-data">
                             <h3>{review.User.firstName}</h3>
-                            <p>{`${month} ${year}`}</p>
+                            <p>{new Date(Date.parse(review.updatedAt)).toLocaleString("en-US", {
+                                month: 'long',
+                                year: 'numeric'
+                                })}
+                            </p>
                             <p>{review.review}</p>
                             {ownerId == review.id &&
                                 <div className="delete-review">
                                     <button
-                                        className="delete-review-button"
-                                        onClick={() => alert("Function Coming Soon!")}
+                                        className="go-to-delete-review"
+                                        onClick={e => deleteButton(e, review.id)}
                                     >
                                         Delete
                                     </button>

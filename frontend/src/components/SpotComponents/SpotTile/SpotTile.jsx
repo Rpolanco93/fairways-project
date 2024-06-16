@@ -51,7 +51,7 @@ const SpotTile = ({payload}) => {
             {owner ? (
             <div>
             <h1>Manage Your Spots</h1>
-            <button onClick={() => navigate('/spots/new')}>Create a New Spot</button>
+            {!spots.Spots.length && <button onClick={() => navigate('/spots/new')}>Create a New Spot</button>}
             </div>) : ("") }
             <div className="tile-container">
                 {spotTiles}
