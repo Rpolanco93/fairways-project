@@ -10,6 +10,7 @@ const SpotTile = ({payload}) => {
     const navigate = useNavigate()
 
 
+
     const updateButton = (e, id) => {
         e.stopPropagation()
         e.preventDefault()
@@ -23,14 +24,17 @@ const SpotTile = ({payload}) => {
     }
 
     const spotTiles = spots.Spots.map(({id, previewImage, city, state, price, avgRating}) => {
-        if (!avgRating) avgRating = 0;
+        if (!avgRating) avgRating = 'New';
         if (!previewImage) previewImage = imageComingSoon;
         return (
             <NavLink to={`/spots/${id}`} key={id}>
                 <div className="spot-tile">
                     <img src={previewImage} className="preview-img"/>
                     <div>{`${city}, ${state}, ${avgRating}`}</div>
-                    <div>{`$${price} night`}</div>
+                    <div>
+                        <span>{`$${price}`}</span>
+                        <label>night</label>
+                    </div>
                     {owner ? (
                         <div className='update-delete'>
                             <button className='update-button' onClick={e => updateButton(e, id)}>Update</button>
@@ -42,7 +46,7 @@ const SpotTile = ({payload}) => {
         )
     })
 
-    return  (
+    return (
         <>
             {owner ? (
             <div>

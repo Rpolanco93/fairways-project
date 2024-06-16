@@ -9,7 +9,9 @@ const DeleteSpotModal = ({spotId}) => {
 
     const handleSubmit = () => {
         dispatch(fetchDeleteSpot(spotId))
-            .then(() => closeModal())
+            .then(() => {
+                closeModal()
+            })
     }
 
     const handleCancel = () => {

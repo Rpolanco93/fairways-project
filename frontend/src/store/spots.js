@@ -70,7 +70,7 @@ export const fetchSpotReviews = (id) => async (dispatch) => {
     const response = await csrfFetch(`/api/spots/${id}/reviews`);
     const data = await response.json();
     dispatch(getSpotReviews(data));
-    return response;
+    return {...data.Reviews};
 }
 
 export const fetchCreateSpot = (payload) => async (dispatch) => {
@@ -115,35 +115,25 @@ export const fetchEditSpot = (payload) => async (dispatch) => {
 }
 
 export const fetchDeleteSpot = (spotId) => async (dispatch) => {
-    // const response = await csrfFetch(`/api/spots/${spotId}`, {
-    //     method: 'DELETE'
-    // });
+    const response = await csrfFetch(`/api/spots/${spotId}`, {
+        method: 'DELETE'
+    });
 
-    // if (response.ok) {
-    //     dispatch(deleteSpot(spotId))
-    // }
-    dispatch(deleteSpot(spotId))
-}
-
-//helper for reducer
-const removeSpotFromStore = async (newState, spotId) => {
-    if (newState.allSpots) {
-        console.log(newState.allSpots, spotId)
-        // let index;
-        // let allSpots = newState.allSpots
-        // let spotsArr = Object.values(allSpots)
-        // // console.log('before splice ', spotsArr)
-        // for (let i = 0; i < spotsArr.length; i++ ) {
-        //     let spot = spotsArr[i]
-        //     if (spot.id == spotId) index = i
-        // }
-        // spotsArr.splice(index)
-        // // console.log('after splice', spotsArr)
-        // newState = {...newState}
+    if (response.ok) {
+        dispatch(deleteSpot(spotId))
     }
-
-    return newState
+    // dispatch(deleteSpot(spotId))
 }
+
+// //helper for reducer
+// const removeSpotFromStore =  () => {
+//     try {
+//          fetchSpots()
+//          fetchManageSpots()
+//     } catch (errors) {
+//         return errors
+//     }
+// }
 
 
 
@@ -166,7 +156,35 @@ const SpotsReducer = (state = initialState, action) => {
             return newState
         }
         case DELETE_SPOT: {
-            return removeSpotFromStore({...state}, action.payload)
+            // async () => await removeSpotFromStore()
+            // return {...state}
+            let newAllSpots;
+            let newMySpots;
+            const spotId = action.payload
+
+            if (state.allSpots) {
+                const data = {...state.allSpots.Spots}
+                let Spots = Object.values(data)
+                let index;
+                for (let i = 0; i < Spots.length; i++) {
+                    if (Spots[i].id == spotId) index = i
+                }
+                Spots.splice(index, 1)
+                newAllSpots = Object.assign({}, Spots)
+            }
+
+            if (state.mySpot) {
+                const data = {...state.mySpot.Spots}
+                let Spots = Object.values(data)
+                let index;
+                for (let i = 0; i < Spots.length; i++) {
+                    if (Spots[i].id == spotId) index = i
+                }
+                Spots.splice(index, 1)
+                newMySpots = Object.assign({}, Spots)
+            }
+
+            return {...state, allSpots: newAllSpots, mySpots: newMySpots}
         }
 
         default:

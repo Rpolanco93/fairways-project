@@ -14,8 +14,6 @@ const LoginFormModal = () => {
 
     useEffect(() => {
       setIsDisabled(credential.length < 4 || password.length < 6)
-      // if (Object.values(errors)) setErrors({})
-
     }, [credential, password])
 
     const handleSubmit = (e) => {
