@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSpot } from "../../../store/spots";
+import { FaStar } from "react-icons/fa";
+import { LuDot } from "react-icons/lu";
 import Reviews from "../../ReviewsComponents/Reviews";
 import imageComingSoon from './comingsoon.jpeg'
 import './SpotDetails.css'
@@ -44,9 +46,19 @@ const SpotDetails = () => {
             </div>
             <div className="pricing-reserve">
                 <div className="pricing">
-                    <h2>{`$${spot.price}`}</h2>
-                    <p className="pricing-ptags">night</p>
-                    <p>{`${spot.numReviews} reviews`}</p>
+                    <h2>{`$${spot.price.toFixed(2)} night`}</h2>
+                    <div className="spot-rating">
+                            {spot.avgStarRating ? (
+                                <p><FaStar /> {(spot.avgStarRating).toFixed(1)}</p>
+                            ) : (<FaStar />)}
+                            {spot.numReviews ? (
+                                <p><LuDot />{spot.numReviews} {
+                                    spot.numReviews > 1 ? ('reviews') : ('review')
+                                }</p>
+                            ) : (
+                                <p>New!</p>
+                            )}
+                        </div>
                 </div>
                 <div className="reserve">
                     <button onClick={comingSoon} className="reserve-button">Reserve</button>

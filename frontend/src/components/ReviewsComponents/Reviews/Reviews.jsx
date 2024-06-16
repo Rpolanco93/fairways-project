@@ -27,7 +27,11 @@ const Reviews = ({spot}) => {
         '12': 'December'
     }
 
-    console.log(months['04'])
+    function orderReviews() {
+        let unordered = reviews.Reviews
+        let ordered = unordered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return ordered
+    }
 
     useEffect(() => {
         dispatch(fetchSpotReviews(spot.id)).then(() => setIsLoaded(true))
@@ -35,7 +39,6 @@ const Reviews = ({spot}) => {
 
 
     if (sessionUser && sessionUser.id == ownerId) isOwner = true;
-
 
 
     return isLoaded ? (
@@ -65,7 +68,7 @@ const Reviews = ({spot}) => {
                     </button>
                     </div> )}
                     {spot.numReviews ? (
-                    reviews.Reviews.map(review => {
+                    orderReviews().map(review => {
                         let year = review.createdAt.split('-')[0]
                         let month = months[review.createdAt.split('-')[1]]
                         return (
@@ -73,6 +76,16 @@ const Reviews = ({spot}) => {
                             <h3>{review.User.firstName}</h3>
                             <p>{`${month} ${year}`}</p>
                             <p>{review.review}</p>
+                            {ownerId == review.id &&
+                                <div className="delete-review">
+                                    <button
+                                        className="delete-review-button"
+                                        onClick={() => alert("Function Coming Soon!")}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            }
                         </li>
                     )})
                     ) : ( <p>Be the first to post a review!</p> )}
