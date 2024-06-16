@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCreateSpot, fetchEditSpot } from "../../../store/spots";
 import { useNavigate } from "react-router-dom";
+import './SpotForm.css'
 
 const SpotForm = ({spot}) => {
     const [country, setCountry] = useState(spot ? spot.country : '');
@@ -100,9 +101,9 @@ const SpotForm = ({spot}) => {
 
     return (
         <div className="create-spot">
-            <form onSubmit={handleSubmit}>
+            <form className='spot-form' onSubmit={handleSubmit}>
             <div className="spot-location">
-                {spot ? (<h1>Update an existing spot</h1>) : (<h1>Create a new Spot</h1>)}
+                {spot ? (<h1>Update your Spot</h1>) : (<h1>Create a new Spot</h1>)}
                 <h3>Where&apos;s your place located?</h3>
                 <p>Guest will only get your exact address once they
                     booked a reservation.
@@ -118,12 +119,12 @@ const SpotForm = ({spot}) => {
                     />
                     {errors.country && (<p className="create-spot-error">{errors.country}</p>)}
 
-                    <label htmlFor='address'>Address</label>
+                    <label htmlFor='address'>Street Address</label>
                     <input
                         type='text'
                         onChange={updateState(setAddress, 'address')}
                         value={address}
-                        placeholder="Address"
+                        placeholder="Street Address"
                         name='address'
                     />
                     {errors.address && (<p className="create-spot-error">{errors.address}</p>)}
@@ -166,7 +167,7 @@ const SpotForm = ({spot}) => {
                     />
 
             </div>
-            <div className="spot-description">
+            <div className="spot-description-form">
                 <h3>Describe your place to guest</h3>
                 <p>
                     Mention the best features of your space,
@@ -178,7 +179,7 @@ const SpotForm = ({spot}) => {
                         type='text'
                         onChange={updateState(setDescription, 'description')}
                         value={description}
-                        placeholder="Description"
+                        placeholder="Please write at least 30 characters"
                         name='description'
                     />
                 {errors.description && (<p className="create-spot-error">{errors.description}</p>)}
@@ -194,7 +195,7 @@ const SpotForm = ({spot}) => {
                         type='text'
                         onChange={updateState(setName, 'name')}
                         value={name}
-                        placeholder="Name"
+                        placeholder="Name of your spot"
                         name='name'
                     />
                 {errors.name && (<p className="create-spot-error">{errors.name}</p>)}
@@ -211,7 +212,7 @@ const SpotForm = ({spot}) => {
                             type='text'
                             onChange={updateState(setPrice, 'price')}
                             value={price}
-                            placeholder="Price"
+                            placeholder="Price per night (USD)"
                             name='price'
                         />
                     </p>
@@ -261,7 +262,8 @@ const SpotForm = ({spot}) => {
                     />
 
             </div>
-            <button>Submit</button>
+            {spot ? (<button className="spotForm-button">Update your Spot</button>) :
+                (<button className="spotForm-button">Create Spot</button>)}
             </form>
         </div>
     )

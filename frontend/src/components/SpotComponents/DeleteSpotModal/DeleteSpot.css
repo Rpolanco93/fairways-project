@@ -1,0 +1,30 @@
+.delete-modal {
+    display: flex;
+    flex-direction: column;
+    margin: 20px;
+    padding: 20px 10px;
+}
+
+.delete-modal-title, .delete-message {
+    align-self: center;
+}
+
+.delete-modal-form {
+    align-self: center;
+}
+
+.delete-spot-button {
+    margin: 10px ;
+}
+
+.delete-yes {
+    background-color: red;
+    color: white;
+    padding: 5px;
+}
+
+.delete-no {
+    background-color: darkgray;
+    color: black;
+    padding: 5px;
+}
