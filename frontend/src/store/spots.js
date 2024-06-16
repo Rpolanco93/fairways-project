@@ -6,7 +6,7 @@ const GET_MY_SPOTS = 'spots/current'
 const CREATE_SPOT = 'spots/new'
 const DELETE_SPOT = 'spots/spotId/delete';
 const GET_SPOT_REVIEWS = 'spots/spotId/reviews'
-const CREATE_REVIEW = 'spots/spotId/reviews'
+const CREATE_REVIEW = 'spots/spotId/createReviews'
 const DELETE_REVIEW = 'reviews/reviewId'
 
 //actions
@@ -25,9 +25,9 @@ const getSpot = (spot) => ({
     payload: spot
 })
 
-const getSpotReviews = (spot) => ({
+const getSpotReviews = (reviews) => ({
     type: GET_SPOT_REVIEWS,
-    payload: {...spot}
+    payload: reviews
 })
 
 const createSpot = (spot) => ({
@@ -135,7 +135,7 @@ export const fetchSpotReviews = (id) => async (dispatch) => {
     const response = await csrfFetch(`/api/spots/${id}/reviews`);
     const data = await response.json();
     dispatch(getSpotReviews(data));
-    return {...data.Reviews};
+    return response;
 }
 
 export const fetchCreateReview = (payload) => async (dispatch) => {
@@ -147,9 +147,10 @@ export const fetchCreateReview = (payload) => async (dispatch) => {
             stars
       })
     })
+
     const data = await response.json();
     dispatch(createReview(data))
-    return data;
+    return response;
 }
 
 export const fetchDeleteReview = (reviewId) => async (dispatch) => {
@@ -160,6 +161,8 @@ export const fetchDeleteReview = (reviewId) => async (dispatch) => {
     if (response.ok) {
         dispatch(deleteReview(reviewId))
     }
+
+    return response
 }
 
 // //helper for reducer
@@ -192,6 +195,7 @@ const SpotsReducer = (state = initialState, action) => {
         case GET_MY_SPOTS:
             return {...state, mySpots: action.payload};
         case GET_SPOT_REVIEWS:{
+
             const newState = { ...state, reviews: {} };
             action.payload.Reviews.forEach(review => {
                 newState.reviews[review.id] = review;
@@ -221,7 +225,7 @@ const SpotsReducer = (state = initialState, action) => {
                 newAllSpots = Object.assign({}, Spots)
             }
 
-            if (state.mySpot) {
+            if (state.mySpots) {
                 const data = {...state.mySpot.Spots}
                 let Spots = Object.values(data)
                 let index;
@@ -236,12 +240,13 @@ const SpotsReducer = (state = initialState, action) => {
         }
         case CREATE_REVIEW:{
             const newState = {...state}
+            newState.reviews = newState.reviews || {}
             newState.reviews[action.payload.id] = action.payload
             return newState
         }
         case DELETE_REVIEW: {
             const reviewId = action.payload
-            const newState = {...state, reviews: {...state.reviews}}
+            const newState = {...state}
             delete newState.reviews[reviewId]
             return newState
         }

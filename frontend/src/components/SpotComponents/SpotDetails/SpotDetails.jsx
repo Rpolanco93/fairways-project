@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchSpot } from "../../../store/spots";
+import { fetchSpot, fetchSpotReviews } from "../../../store/spots";
 import { FaStar } from "react-icons/fa";
 import { LuDot } from "react-icons/lu";
 import Reviews from "../../ReviewsComponents/Reviews";
@@ -13,8 +13,8 @@ const SpotDetails = () => {
     const [isLoaded, setIsLoaded] = useState(false)
     const dispatch = useDispatch();
     const spot = useSelector(state => state.spots.currSpot)
+    const reviews = useSelector(state => state.spots.reviews)
     const {id} = useParams()
-
     const comingSoon = () => alert("Feature Coming Soon...")
 
     let spotImages;
@@ -26,9 +26,18 @@ const SpotDetails = () => {
     }
 
     useEffect(() => {
-        dispatch(fetchSpot(id)).then(() => setIsLoaded(true))
+        Promise.all(
+            [dispatch(fetchSpot(id)),
+            dispatch(fetchSpotReviews(id))]
+        )
+        .then(() => setIsLoaded(true))
 
     }, [dispatch, id])
+
+    useEffect(() => {
+        console.log("reviews change")
+    }, [reviews])
+
 
     return isLoaded ? (
         <div className="details-page">
@@ -65,7 +74,7 @@ const SpotDetails = () => {
                 </div>
             </div>
         </div>
-        <Reviews spot={spot}/>
+        <Reviews reviews={Object.values(reviews)} ownerId={spot.ownerId} spotId={spot.id} avgStarRating={spot.avgStarRating}/>
         </div>
     ) : (
         <h1>Loading...</h1>
