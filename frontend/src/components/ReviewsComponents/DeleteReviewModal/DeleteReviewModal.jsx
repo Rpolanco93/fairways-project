@@ -23,8 +23,7 @@ const DeleteReviewModal = ({reviewId}) => {
         <div className='delete-modal'>
             <h1 className='delete-modal-title'>Confirm Delete</h1>
             <p className='delete-message'>
-                Are you sure you want to remove this spot from
-                the listings?
+                Are you sure you want to delete this review?
             </p>
             <form className='delete-modal-form'>
                 <button
