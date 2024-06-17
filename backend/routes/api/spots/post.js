@@ -7,19 +7,33 @@ const { handleValidationErrors } = require('../../../utils/validation.js')
 //* import helper functions and checks
 const { validateSpot, validateQuery, validateReview, getAvgAndImage, getAvgReviewAndCount } = require('./validator.js')
 const { validateBooking } = require('../bookings/validator.js')
+const {addSpotImage} = require("./helper");
+const {validateSpotImages} = require("../spot-images/validator");
 
 const router = express.Router();
 
 //* Create a Spot
 router.post("/",
-    requireAuth, validateSpot,
+    requireAuth, validateSpot, validateSpotImages,
     async (req, res, next) => {
         const ownerId = req.user.id
         const { address, city, state, country, lat, lng, name, description, price} = req.body
 
         try {
-            const newSpot = await Spot.create({ownerId, address, city, state, country, lat, lng, name, description, price})
-            return res.status(201).json(newSpot)
+            //Create spot
+            const spot = await Spot.create({ownerId, address, city, state, country, lat, lng, name, description, price})
+
+            //Check to see if images have been included
+            const images = req.body.images;
+            console.log(images)
+            if (Array.isArray(images) && images.length > 0) {
+                for (const image of images) {
+                    await addSpotImage(spot, image.url, image.preview)
+                }
+            }
+
+            //Return created spot
+            return res.status(201).json(spot)
         } catch(err) {
             return next(err)
         }
@@ -40,12 +54,8 @@ router.post("/:spotId/images",
             message: 'Forbidden'
           })
         }
-        const image = (await spot.createSpotImage({url, previewImage})).toJSON()
-        res.json({
-            id: image.id,
-            url: image.url,
-            preview: image.previewImage
-        })
+
+        return res.json((await addSpotImage(spot, url, previewImage)));
 })
 
 //* Create a Review for a Spot based on the Spot's id

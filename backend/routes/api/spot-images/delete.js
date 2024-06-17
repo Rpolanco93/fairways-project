@@ -4,6 +4,7 @@ const { Spot, Review, SpotImages, User, ReviewImages, Booking } = require('../..
 const { Op, Sequelize, DATE, DATEONLY } = require('sequelize');
 const { check } = require('express-validator')
 const { handleValidationErrors } = require('../../../utils/validation.js')
+const {deleteSpotImage} = require("./helper");
 const router = express.Router();
 
 //* Delete a Spot Image
@@ -16,9 +17,9 @@ router.delete("/:imageId", requireAuth, async (req, res, next) => {
     let spot = await Spot.findByPk(image.spotId)
     if (spot.ownerId !== req.user.id) return res.status(403).json({
       message: "Forbidden"
-  })
+    })
 
-    await SpotImages.destroy({where: {id: req.params.imageId}})
+    await deleteSpotImage(req.params.imageId);
 
     res.json({
         "message": "Successfully deleted"
