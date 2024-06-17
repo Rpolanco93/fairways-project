@@ -21,7 +21,7 @@ const SpotDetails = () => {
 
     if (isLoaded) {
         spotImages = spot.SpotImages.map(image => (
-            <img src={image.url} key={image.id}/>
+            <img src={image.url} key={image.id} height={'100'} width={'100'} />
         ))
     }
 
