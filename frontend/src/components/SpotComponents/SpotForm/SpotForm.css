@@ -16,6 +16,13 @@
     color: white;
 }
 
+.spotform-label,
+.image-input {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 5px;
+}
+
 .create-spot-error {
     color: red;
 }
