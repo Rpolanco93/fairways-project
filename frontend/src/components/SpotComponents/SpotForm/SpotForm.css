@@ -1,5 +1,12 @@
+.create-spot {
+    margin: 20px;
+    align-self: center;
+}
+
 .spot-form {
     margin: 20px;
+    align-self: center;
+    align-content: center;
 }
 
 .spotForm-button {
