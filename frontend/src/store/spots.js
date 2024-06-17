@@ -73,19 +73,10 @@ export const fetchSpot = (id) => async (dispatch) => {
 }
 
 export const fetchCreateSpot = (payload) => async (dispatch) => {
-    const { ownerId, address,city,state,country,name,description,price } = payload;
+
     const response = await csrfFetch('/api/spots', {
         method: 'POST',
-        body: JSON.stringify({
-            ownerId,
-            address,
-            city,
-            state,
-            country,
-            name,
-            description,
-            price
-      })
+        body: JSON.stringify(payload)
     })
     const data = await response.json();
     dispatch(createSpot(data))
@@ -93,20 +84,10 @@ export const fetchCreateSpot = (payload) => async (dispatch) => {
 }
 
 export const fetchEditSpot = (payload) => async (dispatch) => {
-    const { spotId, ownerId, address,city,state,country,name,description,price } = payload;
+    const { spotId } = payload;
     const response = await csrfFetch(`/api/spots/${spotId}`, {
         method: 'PUT',
-        body: JSON.stringify({
-            spotId,
-            ownerId,
-            address,
-            city,
-            state,
-            country,
-            name,
-            description,
-            price
-      })
+        body: JSON.stringify(payload)
     })
     const data = await response.json();
     dispatch(createSpot(data))
@@ -148,17 +129,6 @@ export const fetchDeleteReview = (reviewId) => async () => {
 
     return response
 }
-
-// //helper for reducer
-// const removeSpotFromStore =  () => {
-//     try {
-//          fetchSpots()
-//          fetchManageSpots()
-//     } catch (errors) {
-//         return errors
-//     }
-// }
-
 
 
 //reducer

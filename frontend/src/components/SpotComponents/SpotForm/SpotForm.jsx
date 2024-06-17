@@ -14,7 +14,7 @@ const SpotForm = ({spot}) => {
     const [description,setDescription] = useState(spot ? spot.description : '');
     const [name, setName] = useState(spot ? spot.name : '');
     const [price, setPrice] = useState(spot ? spot.price : '');
-    const [previewImage, setPreviewImage] = useState('');
+    const [previewImage, setPreviewImage] = useState(spot && spot.SpotImages ? spot.SpotImages[0].url : '');
     const [imageTwo, setImageTwo] = useState('')
     const [imageThree, setImageThree] = useState('')
     const [imageFour, setImageFour] = useState('')
@@ -75,7 +75,25 @@ const SpotForm = ({spot}) => {
             description,
             price: parseFloat(price),
             lat: parseFloat(lat),
-            lng: parseFloat(lng)
+            lng: parseFloat(lng),
+            images: [
+                {
+                    url: previewImage,
+                    preview: true
+                },
+                {
+                    url: imageTwo
+                },
+                {
+                    url: imageThree
+                },
+                {
+                    url: imageFour
+                },
+                {
+                    url: imageFive
+                }
+            ]
         }
 
         if (spot) {
@@ -227,35 +245,35 @@ const SpotForm = ({spot}) => {
 
                     <input
                         type='text'
-                        onChange={setPreviewImage}
+                        onChange={updateState(setPreviewImage, 'preview')}
                         value={previewImage}
                         placeholder="Preview Image URL"
                         name='url'
                     />
                     <input
                         type='text'
-                        onChange={setImageTwo}
+                        onChange={updateState(setImageTwo, 'two')}
                         value={imageTwo}
                         placeholder="Image URL"
                         name='image2'
                     />
                     <input
                         type='text'
-                        onChange={setImageThree}
+                        onChange={updateState(setImageThree, 'three')}
                         value={imageThree}
                         placeholder="Image URL"
                         name='image3'
                     />
                     <input
                         type='text'
-                        onChange={setImageFour}
+                        onChange={updateState(setImageFour, 'four')}
                         value={imageFour}
                         placeholder="Image URL"
                         name='image4'
                     />
                     <input
                         type='text'
-                        onChange={setImageFive}
+                        onChange={updateState(setImageFive, 'five')}
                         value={imageFive}
                         placeholder="Image URL"
                         name='image5'
