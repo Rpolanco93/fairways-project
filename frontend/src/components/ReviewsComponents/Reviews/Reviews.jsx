@@ -1,6 +1,4 @@
-// import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { useEffect } from "react";
 import { useModal } from '../../../context/Modal';
 import ReviewFormModal from "../ReviewFormModal/ReviewFormModal";
 import DeleteReviewModal from "../DeleteReviewModal/DeleteReviewModal";
@@ -13,10 +11,6 @@ const Reviews = ({reviews, ownerId, avgStarRating, spotId}) => {
     const sessionUser = useSelector(state => state.session.user)
     let isOwner;
     const numReviews = reviews.length
-
-    useEffect(() => {
-        console.log('test')
-    }, [reviews])
 
     let hasReview;
     let isLoggedIn;
