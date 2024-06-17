@@ -16,7 +16,7 @@ const SpotDetails = () => {
     const reviews = useSelector(state => state.spots.reviews)
     const {id} = useParams()
     const comingSoon = () => alert("Feature Coming Soon...")
-
+    const numReviews = Object.values(reviews)
     let spotImages;
 
     if (isLoaded) {
@@ -24,8 +24,6 @@ const SpotDetails = () => {
             <img src={image.url} key={image.id} height={'100'} width={'100'} />
         ))
     }
-
-    console.log('spotdetails line 28', id)
 
     useEffect(() => {
         Promise.all(
@@ -36,9 +34,6 @@ const SpotDetails = () => {
 
     }, [dispatch, id])
 
-    useEffect(() => {
-        console.log("reviews change")
-    }, [reviews])
 
 
     return isLoaded ? (
@@ -63,8 +58,8 @@ const SpotDetails = () => {
                                 <p><FaStar /> {(spot.avgStarRating).toFixed(1)}</p>
                             ) : (<FaStar />)}
                             {spot.numReviews ? (
-                                <p><LuDot />{spot.numReviews} {
-                                    spot.numReviews > 1 ? ('reviews') : ('review')
+                                <p><LuDot />{numReviews.length} {
+                                    numReviews.length > 1 ? ('reviews') : ('review')
                                 }</p>
                             ) : (
                                 <p>New!</p>

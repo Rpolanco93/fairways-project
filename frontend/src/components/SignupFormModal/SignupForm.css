@@ -1,42 +1,45 @@
-form {
-    border: 30px;
-}
-
-label {
-    display: flex;
-    flex-direction: row;
-}
-
-input {
-    width: 50%;
-    padding: 5px;
-}
-
-input:focus {
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.94);
-}
-
 button.standard:disabled {
     color: #666;
 }
 
-/* button[type="submit"] {
-    background-color: blue;
-    width: 180px;
-    display: block;
-    margin: 0px auto;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 18px;
-    font-family: "Courier New", Courier, monospace;
-    color: white;
-    margin-top: 30px;
+.signup-modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 20px 40px;
     padding: 20px;
-    text-align: center;
-    cursor: pointer;
 }
 
-button[type="submit"]:hover {
-    background-color: darkblue;
-} */
+.signup-header {
+    align-self: center;
+}
+
+.signup-error {
+    color: red;
+    font-weight: bold;
+}
+
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+}
+
+.signup-form-labels {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+}
+
+.signup-inputs {
+    width: max-content;
+}
+
+.signup-button {
+    margin: 10px;
+    background-color: blue;
+    color: white;
+    padding: 5px;
+}

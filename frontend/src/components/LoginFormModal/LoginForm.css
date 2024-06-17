@@ -1,3 +1,47 @@
 button.standard:disabled {
     color: #666;
 }
+
+.login-modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 20px;
+    padding: 20px
+}
+
+.login-title-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-error {
+    color: red;
+    font-weight: bold;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-form-labels {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+}
+
+.login-inputs {
+    width: max-content;
+}
+
+.login-submit {
+    margin: 10px;
+    background-color: blue;
+    color: white;
+    padding: 5px;
+}
