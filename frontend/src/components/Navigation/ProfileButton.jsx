@@ -62,8 +62,8 @@ function ProfileButton({ user }) {
           <div className='user-details'>
             <span>Hello, {user.firstName}!</span>
             <span>Email: {user.email}</span>
-            <span><Link to='/spots/current'>Manage Spots</Link></span>
-            <button onClick={logout}>Log Out</button>
+            <button className='manage-spots'><Link to='/spots/current'>Manage Spots</Link></button>
+            <button onClick={logout} className='logout'>Log Out</button>
           </div>
         ) : (
             <div className='auth-buttons'>
@@ -77,7 +77,7 @@ function ProfileButton({ user }) {
                 onButtonClick={closeMenu}
                 modalComponent={<SignupFormModal />}
               />
-              <button onClick={demoLogin}>Demo Login</button>
+              <button onClick={demoLogin} className='auth-buttons'>Demo Login</button>
             </div>
         )}
       </div>
