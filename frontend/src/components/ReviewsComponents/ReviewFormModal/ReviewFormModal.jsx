@@ -14,7 +14,7 @@ const ReviewFormModal = ({spotId}) => {
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        setButtonDisabled(review.length < 10 || stars === 0);
+        setButtonDisabled(review.length < 10 || stars === null);
     }, [review, stars]);
 
     useEffect(() => {
@@ -62,7 +62,7 @@ const ReviewFormModal = ({spotId}) => {
                     type='textarea'
                     onChange={updateState(setReview)}
                     value={review}
-                    placeholder="Just a quick review"
+                    placeholder="Leave your review here.."
                     name='review-description'
                     className='review-box'
                 >

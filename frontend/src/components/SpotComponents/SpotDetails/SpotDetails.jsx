@@ -25,6 +25,8 @@ const SpotDetails = () => {
         ))
     }
 
+    console.log('spotdetails line 28', id)
+
     useEffect(() => {
         Promise.all(
             [dispatch(fetchSpot(id)),
@@ -74,7 +76,7 @@ const SpotDetails = () => {
                 </div>
             </div>
         </div>
-        <Reviews reviews={Object.values(reviews)} ownerId={spot.ownerId} spotId={spot.id} avgStarRating={spot.avgStarRating}/>
+        <Reviews reviews={Object.values(reviews)} ownerId={spot.ownerId} spotId={id} avgStarRating={spot.avgStarRating}/>
         </div>
     ) : (
         <h1>Loading...</h1>

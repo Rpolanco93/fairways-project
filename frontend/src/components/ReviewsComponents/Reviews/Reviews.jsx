@@ -1,6 +1,6 @@
 // import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-// import { fetchSpotReviews } from "../../../store/spots";
+import { useEffect } from "react";
 import { useModal } from '../../../context/Modal';
 import ReviewFormModal from "../ReviewFormModal/ReviewFormModal";
 import DeleteReviewModal from "../DeleteReviewModal/DeleteReviewModal";
@@ -14,15 +14,20 @@ const Reviews = ({reviews, ownerId, avgStarRating, spotId}) => {
     let isOwner;
     const numReviews = reviews.length
 
-    const hasReview = reviews.find(review => review.userId === sessionUser.id)
+    useEffect(() => {
+        console.log('test')
+    }, [reviews])
 
+    let hasReview;
+    let isLoggedIn;
 
     function orderReviews() {
         return reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
     if (sessionUser && sessionUser.id == ownerId) isOwner = true;
-
+    if (sessionUser && sessionUser.id !== undefined) hasReview = reviews.find(review => review.userId === sessionUser.id)
+    if (sessionUser && sessionUser.id !== undefined) isLoggedIn = true;
 
     const deleteButton = (e, id) => {
         e.stopPropagation()
@@ -47,7 +52,7 @@ const Reviews = ({reviews, ownerId, avgStarRating, spotId}) => {
             </div>
             <div>
                 <ul>
-                    {!isOwner && !hasReview && (
+                    {!isOwner && !hasReview && isLoggedIn && (
                     <div className="Post-review">
                         <button
                         className="post-review-button"
@@ -67,7 +72,7 @@ const Reviews = ({reviews, ownerId, avgStarRating, spotId}) => {
                                 })}
                             </p>
                             <p>{review.review}</p>
-                            {sessionUser.id === review.userId  &&
+                            {sessionUser && sessionUser.id === review.userId  &&
                                 <div className="delete-review">
                                     <button
                                         className="go-to-delete-review"

@@ -50,17 +50,10 @@ const deleteReview = (reviewId) => ({
     payload: reviewId
 })
 
-
-//helper for organizing return data
-const sortObj = (obj) => {
-    console.log('helper func', obj)
-}
-
 //thunk
 export const fetchSpots = () => async (dispatch) => {
     const response = await csrfFetch('/api/spots');
     const data = await response.json();
-    sortObj(data)
     dispatch(getSpots(data))
     return response
 }
@@ -195,7 +188,6 @@ const SpotsReducer = (state = initialState, action) => {
         case GET_MY_SPOTS:
             return {...state, mySpots: action.payload};
         case GET_SPOT_REVIEWS:{
-
             const newState = { ...state, reviews: {} };
             action.payload.Reviews.forEach(review => {
                 newState.reviews[review.id] = review;
