@@ -32,7 +32,7 @@ const Reviews = ({reviews, ownerId, avgStarRating, spotId}) => {
     const deleteButton = (e, id) => {
         e.stopPropagation()
         e.preventDefault()
-        setModalContent(<DeleteReviewModal reviewId={id} />)
+        setModalContent(<DeleteReviewModal reviewId={id} spotId={spotId} />)
     }
 
     return (

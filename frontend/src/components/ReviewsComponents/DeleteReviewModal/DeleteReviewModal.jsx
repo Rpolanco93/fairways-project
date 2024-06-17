@@ -1,18 +1,24 @@
 import { useDispatch } from 'react-redux';
 import { useModal } from '../../../context/Modal';
-import { fetchDeleteReview } from '../../../store/spots';
+import { fetchDeleteReview, fetchSpot, fetchSpotReviews } from '../../../store/spots';
 import './DeleteReviewModal.css'
 
-const DeleteReviewModal = ({reviewId}) => {
+const DeleteReviewModal = ({reviewId, spotId}) => {
     const dispatch = useDispatch()
     const { closeModal } = useModal()
 
 
     const handleSubmit = () => {
         dispatch(fetchDeleteReview(reviewId))
-            .then(() => {
-                closeModal()
-            })
+        .then(() => {
+            dispatch(fetchSpot(spotId))
+        })
+        .then(() => {
+            dispatch(fetchSpotReviews(spotId))
+        })
+        .then(() => {
+            closeModal()
+        })
     }
 
     const handleCancel = () => {
