@@ -1,6 +1,7 @@
 .details-page {
-    padding: 3px 20px;
-    margin: 10px 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
     display: flex;
     flex-direction: column;
 }
@@ -13,6 +14,29 @@
 
 .spot-images {
     display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    flex-direction: row;
+}
+
+.preview-image,
+.preview-image-div {
+    width: 500px;
+    height: 500px;
+    object-fit: cover;
+}
+
+.other-images-div {
+    display: flex;
+    flex-wrap: wrap;
+    width: 500px;
+    gap: 5px;
+}
+
+.other-images {
+    width: calc(50% - 5px);
+    height: 245px;
+    object-fit: cover;
 }
 
 .spot-description {
