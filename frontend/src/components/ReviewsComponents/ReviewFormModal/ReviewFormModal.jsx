@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useModal } from '../../../context/Modal';
-import { fetchCreateReview } from '../../../store/spots';
+import { fetchCreateReview, fetchSpot, fetchSpotReviews } from '../../../store/spots';
 import { useState, useEffect } from 'react';
 import './ReviewFormModal.css'
 
@@ -41,6 +41,12 @@ const ReviewFormModal = ({spotId}) => {
         }
 
         return dispatch(fetchCreateReview(payload))
+            .then(() => {
+                dispatch(fetchSpot(spotId))
+            })
+            .then(() => {
+                dispatch(fetchSpotReviews(spotId))
+            })
             .then(() => {
                 closeModal()
             })

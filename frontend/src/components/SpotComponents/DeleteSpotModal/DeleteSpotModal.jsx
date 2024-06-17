@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useModal } from '../../../context/Modal';
-import { fetchDeleteSpot } from '../../../store/spots';
+import { fetchDeleteSpot, fetchManageSpots, fetchSpots } from '../../../store/spots';
 import './DeleteSpot.css'
 
 const DeleteSpotModal = ({spotId}) => {
@@ -10,6 +10,12 @@ const DeleteSpotModal = ({spotId}) => {
 
     const handleSubmit = () => {
         dispatch(fetchDeleteSpot(spotId))
+            .then(() => {
+                dispatch(fetchSpots())
+            })
+            .then(() => {
+                dispatch(fetchManageSpots())
+            })
             .then(() => {
                 closeModal()
             })
