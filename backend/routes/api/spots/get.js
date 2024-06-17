@@ -143,7 +143,7 @@ router.get("/:spotId/reviews", async (req, res, next) => {
             message: "Spot couldn't be found"
         })
 
-        const Reviews = await Review.findAll({
+        const reviews = await Review.findAll({
             where: {
                 spotId: req.params.spotId
             },
@@ -159,7 +159,7 @@ router.get("/:spotId/reviews", async (req, res, next) => {
             ]
         })
 
-        return res.json({Reviews})
+        return res.json({Reviews: reviews})
 
     } catch(err) {
         return next(err)
