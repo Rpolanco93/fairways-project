@@ -23,11 +23,11 @@ const SpotDetails = () => {
     if (isLoaded) {
         spot.SpotImages.map(image => {
             if (image.preview) {
-                return previewImage = <img src={image.url} key={image.id} height={'100'} width={'100'} />
+                return previewImage = <img src={image.url} key={image.id}  className="preview-image"/>
             }
 
             if (image.url !== '') {
-                spotImages.push(<img src={image.url} key={image.id} height={'100'} width={'100'} />)
+                spotImages.push(<img src={image.url} key={image.id}  className="other-images"/>)
             }
         })
     }
@@ -51,10 +51,10 @@ const SpotDetails = () => {
         </div>
         <div className="spot-images">
             <div className="preview-image-div">
-                {previewImage ? previewImage : <img src={imageComingSoon} height={'100'} width={'100'}/>}
+                {previewImage ? previewImage : <img src={imageComingSoon} className="preview-image"/>}
             </div>
             {spotImages && (
-                <div className="other-images">
+                <div className="other-images-div">
                     {spotImages}
                 </div>
             )}
