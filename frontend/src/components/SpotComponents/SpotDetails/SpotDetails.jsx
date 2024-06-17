@@ -17,12 +17,19 @@ const SpotDetails = () => {
     const {id} = useParams()
     const comingSoon = () => alert("Feature Coming Soon...")
     const numReviews = Object.values(reviews)
-    let spotImages;
+    let previewImage;
+    let spotImages = [];
 
     if (isLoaded) {
-        spotImages = spot.SpotImages.map(image => (
-            <img src={image.url} key={image.id} height={'100'} width={'100'} />
-        ))
+        spot.SpotImages.map(image => {
+            if (image.preview) {
+                return previewImage = <img src={image.url} key={image.id} height={'100'} width={'100'} />
+            }
+
+            if (image.url !== '') {
+                spotImages.push(<img src={image.url} key={image.id} height={'100'} width={'100'} />)
+            }
+        })
     }
 
     useEffect(() => {
@@ -43,7 +50,14 @@ const SpotDetails = () => {
             <p>{`${spot.city}, ${spot.state}, ${spot.country}`}</p>
         </div>
         <div className="spot-images">
-            {spotImages ? spotImages : <img src={imageComingSoon} />}
+            <div className="preview-image-div">
+                {previewImage ? previewImage : <img src={imageComingSoon} height={'100'} width={'100'}/>}
+            </div>
+            {spotImages && (
+                <div className="other-images">
+                    {spotImages}
+                </div>
+            )}
         </div>
         <div className="spot-description">
             <div className="host-details">

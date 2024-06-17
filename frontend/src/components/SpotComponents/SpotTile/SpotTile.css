@@ -3,6 +3,8 @@
     flex-wrap: wrap;
     flex-direction: row;
     gap: 50px 50px;
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 .spot-tile {
@@ -14,7 +16,8 @@
     border-radius: 5px;
 }
 
+
 .preview-image {
-    max-width: 50%;
-    max-height: 50%
+    max-width: 50;
+    max-height: 50;
 }

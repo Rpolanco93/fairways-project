@@ -52,12 +52,14 @@ li {
     width: 200px;
 }
 
-.profile-details,
+.user-details,
 .auth-buttons {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
+
+
 
 .modal-menu-item {
     cursor: pointer;
@@ -78,3 +80,17 @@ li {
 #span {
     padding: 10px;
 }
+
+a:link {
+    text-decoration: none;
+  }
+  a:visited {
+    text-decoration: none;
+    color: black;
+  }
+  a:hover {
+    text-decoration: none;
+  }
+  a:active {
+    text-decoration: none;
+  }
