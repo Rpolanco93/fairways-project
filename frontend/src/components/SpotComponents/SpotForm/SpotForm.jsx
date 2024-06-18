@@ -4,6 +4,14 @@ import { fetchCreateSpot, fetchEditSpot } from "../../../store/spots";
 import { useNavigate } from "react-router-dom";
 import './SpotForm.css'
 
+const getUrl = (spot, index) => {
+    try {
+        return spot.SpotImages[index].url
+    } catch (error) {
+        return ''
+    }
+}
+
 const SpotForm = ({spot}) => {
     const [country, setCountry] = useState(spot ? spot.country : '');
     const [address, setAddress] = useState(spot ? spot.address : '');
@@ -14,11 +22,11 @@ const SpotForm = ({spot}) => {
     const [description,setDescription] = useState(spot ? spot.description : '');
     const [name, setName] = useState(spot ? spot.name : '');
     const [price, setPrice] = useState(spot ? spot.price : '');
-    const [previewImage, setPreviewImage] = useState(spot && spot.SpotImages ? spot.SpotImages[0].url : '');
-    const [imageTwo, setImageTwo] = useState('')
-    const [imageThree, setImageThree] = useState('')
-    const [imageFour, setImageFour] = useState('')
-    const [imageFive, setImageFive] = useState('')
+    const [previewImage, setPreviewImage] = useState(getUrl(spot, 0));
+    const [imageTwo, setImageTwo] = useState(getUrl(spot, 1))
+    const [imageThree, setImageThree] = useState(getUrl(spot, 2))
+    const [imageFour, setImageFour] = useState(getUrl(spot, 3))
+    const [imageFive, setImageFive] = useState(getUrl(spot, 4))
     const [errors, setErrors] = useState({});
     const dispatch = useDispatch();
     const navigate = useNavigate();

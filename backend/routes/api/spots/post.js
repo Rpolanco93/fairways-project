@@ -25,7 +25,6 @@ router.post("/",
 
             //Check to see if images have been included
             const images = req.body.images;
-            console.log(images)
             if (Array.isArray(images) && images.length > 0) {
                 for (const image of images) {
                     await addSpotImage(spot, image.url, image.preview)
