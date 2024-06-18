@@ -116,14 +116,16 @@ router.get("/:spotId", async (req, res, next) => {
             },
             {
                 model: SpotImages,
-                attributes: ['id', 'url', ['previewImage', 'preview']]
+                attributes: ['id', 'url', ['previewImage', 'preview']],
+
             },
             {
                 model: User,
                 as: "Owner",
                 attributes: ['id', 'firstName', 'lastName']
             }
-        ]
+        ],
+        order: [[SpotImages, 'previewImage', 'DESC'], [SpotImages, 'url', 'DESC']]
     })
 
     if (!getSpot) return res.status(404).json({
