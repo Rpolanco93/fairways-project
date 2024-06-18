@@ -1,5 +1,12 @@
+.create-spot {
+    margin: 20px;
+    align-self: center;
+}
+
 .spot-form {
     margin: 20px;
+    align-self: center;
+    align-content: center;
 }
 
 .spotForm-button {
@@ -14,6 +21,13 @@
     cursor: pointer;
     text-align: center;
     color: white;
+}
+
+.spotform-label,
+.image-input {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 5px;
 }
 
 .create-spot-error {

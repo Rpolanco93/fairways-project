@@ -127,7 +127,7 @@ const SpotForm = ({spot}) => {
                     booked a reservation.
                 </p>
 
-                    <label htmlFor='country'>Country</label>
+                    <label htmlFor='country' className="spotform-label">Country</label>
                     <input
                         type='text'
                         onChange={updateState(setCountry, 'country')}
@@ -137,7 +137,7 @@ const SpotForm = ({spot}) => {
                     />
                     {errors.country && (<p className="create-spot-error">{errors.country}</p>)}
 
-                    <label htmlFor='address'>Street Address</label>
+                    <label htmlFor='address' className="spotform-label">Street Address</label>
                     <input
                         type='text'
                         onChange={updateState(setAddress, 'address')}
@@ -147,7 +147,7 @@ const SpotForm = ({spot}) => {
                     />
                     {errors.address && (<p className="create-spot-error">{errors.address}</p>)}
 
-                    <label htmlFor='city'>City</label>
+                    <label htmlFor='city' className="spotform-label">City</label>
                     <input
                         type='text'
                         onChange={updateState(setCity, 'city')}
@@ -157,7 +157,7 @@ const SpotForm = ({spot}) => {
                     />
                     {errors.city && (<p className="create-spot-error">{errors.city}</p>)}
 
-                    <label htmlFor='state'>State</label>
+                    <label htmlFor='state' className="spotform-label">State</label>
                     <input
                         type='text'
                         onChange={updateState(setState, 'state')}
@@ -167,7 +167,7 @@ const SpotForm = ({spot}) => {
                     />
                     {errors.state && (<p className="create-spot-error">{errors.state}</p>)}
 
-                    <label htmlFor='lat'>Latitude</label>
+                    <label htmlFor='lat' className="spotform-label">Latitude</label>
                     <input
                         type='text'
                         onChange={updateState(setLat, 'lat')}
@@ -175,7 +175,7 @@ const SpotForm = ({spot}) => {
                         placeholder="Lat is optional"
                         name='lat'
                     />
-                    <label htmlFor='lng'>Longitude</label>
+                    <label htmlFor='lng' className="spotform-label">Longitude</label>
                     <input
                         type='text'
                         onChange={updateState(setLng, 'lng')}
@@ -249,6 +249,7 @@ const SpotForm = ({spot}) => {
                         value={previewImage}
                         placeholder="Preview Image URL"
                         name='url'
+                        className="image-input"
                     />
                     <input
                         type='text'
@@ -256,6 +257,7 @@ const SpotForm = ({spot}) => {
                         value={imageTwo}
                         placeholder="Image URL"
                         name='image2'
+                        className="image-input"
                     />
                     <input
                         type='text'
@@ -263,6 +265,7 @@ const SpotForm = ({spot}) => {
                         value={imageThree}
                         placeholder="Image URL"
                         name='image3'
+                        className="image-input"
                     />
                     <input
                         type='text'
@@ -270,6 +273,7 @@ const SpotForm = ({spot}) => {
                         value={imageFour}
                         placeholder="Image URL"
                         name='image4'
+                        className="image-input"
                     />
                     <input
                         type='text'
@@ -277,6 +281,7 @@ const SpotForm = ({spot}) => {
                         value={imageFive}
                         placeholder="Image URL"
                         name='image5'
+                        className="image-input"
                     />
 
             </div>

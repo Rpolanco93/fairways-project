@@ -42,7 +42,6 @@ const SpotDetails = () => {
     }, [dispatch, id])
 
 
-
     return isLoaded ? (
         <div className="details-page">
         <div className="spot-data">

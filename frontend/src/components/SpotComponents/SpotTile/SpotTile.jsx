@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import imageComingSoon from './comingsoon.jpeg'
 import { useModal } from '../../../context/Modal';
 import DeleteSpotModal from '../DeleteSpotModal/DeleteSpotModal';
+import { FaStar } from 'react-icons/fa';
 import './SpotTile.css';
 
 const SpotTile = ({payload}) => {
@@ -24,16 +25,24 @@ const SpotTile = ({payload}) => {
     }
 
     const spotTiles = spots.Spots.map(({id, previewImage, city, state, price, avgRating}) => {
-        if (!avgRating) avgRating = 'New';
+        // if (!avgRating) avgRating = 'New';
         if (!previewImage) previewImage = imageComingSoon;
         return (
             <NavLink to={`/spots/${id}`} key={id}>
                 <div className="spot-tile">
                     <img src={previewImage} className="preview-img"/>
-                    <div>{`${city}, ${state}, ${avgRating}`}</div>
-                    <div>
-                        <span>{`$${price}`}</span>
-                        <label>night</label>
+                    <div className='spot-tile-details'>
+                        <div className='spot-add-rating'>
+                        <div className='spot-tile-address'>
+                            <p className='city-state'>{`${city}, ${state}`}</p>
+                        </div>
+                            {avgRating ? (
+                                <p className="spot-tile-rating"><FaStar /> {(avgRating).toFixed(1)}</p>
+                            ) : (<p className='spot-tile-rating'>New!</p>)}
+                        </div>
+                        <div className='spot-tile-pricing'>
+                            <p className='spot-tile-price'>{`$${price}`} night</p>
+                        </div>
                     </div>
                     {owner ? (
                         <div className='update-delete'>
